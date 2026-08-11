@@ -13,6 +13,42 @@ BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 # ------------------------------------------------------------------------------
 st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, layout="wide", initial_sidebar_state="expanded")
 
+# INJEKSI JS: TITLE LOCKER (MENGHILANGKAN '· Streamlit') & PROTEKSI UI
+components.html(
+    """<script>
+    const doc = window.parent.document;
+    
+    // 1. Pengunci Judul Tab Browser Permanen (Menghapus '· Streamlit')
+    function lockTitle() {
+        if (doc.title !== "GAW Lore Lindu Bariri") {
+            doc.title = "GAW Lore Lindu Bariri";
+        }
+    }
+    lockTitle();
+    setInterval(lockTitle, 300); // Re-check setiap 0.3 detik agar tidak bisa ditimpa Streamlit
+
+    // 2. Injeksi CSS Sembunyikan 'Manage app' & Element Bawaan
+    const style = doc.createElement('style');
+    style.innerHTML = `
+        [data-testid="stStatusWidget"],
+        [data-testid="manage-app-button"],
+        .stAppViewer,
+        footer,
+        #MainMenu,
+        header { display: none !important; visibility: hidden !important; }
+    `;
+    doc.head.appendChild(style);
+
+    // 3. Matikan Klik Kanan & F12
+    doc.addEventListener('contextmenu', event => event.preventDefault());
+    doc.addEventListener('keydown', function(e) {
+        if(e.keyCode == 123) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
+    });
+    </script>""", height=0, width=0
+)
+
 # ------------------------------------------------------------------------------
 # 2. LOAD DATA DARI DATABASE
 # ------------------------------------------------------------------------------
@@ -39,17 +75,15 @@ GLOBAL_BENCHMARKS = {
 }
 
 # ------------------------------------------------------------------------------
-# 3. SIDEBAR NAVIGATION & TOGGLE TEMA CERAH/GELAP
+# 3. SIDEBAR NAVIGATION & TOGGLE TEMA
 # ------------------------------------------------------------------------------
 st.sidebar.image(BMKG_LOGO_URL, width=80)
 st.sidebar.title("GAW Lore Lindu Bariri")
 st.sidebar.caption("Stasiun Pemantau Atmosfer Global - BMKG")
 st.sidebar.markdown("---")
 
-# SLIDE TOGGLE MODE CERAH (LIGHT MODE)
 st.sidebar.markdown("### 🎨 Tema Tampilan")
 light_mode = st.sidebar.toggle("☀️ Mode Cerah (Light)", value=False)
-
 st.sidebar.markdown("---")
 
 instrument = st.sidebar.radio("📌 Pilih Instrumen:", ["Picarro (GHG)", "Ozon (ACOEM)"])
@@ -78,36 +112,17 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. PENGATURAN SKEMA WARNA DUAL TEMA (DYNAMIC CSS)
+# 4. PENGATURAN SKEMA WARNA DUAL TEMA
 # ------------------------------------------------------------------------------
 if light_mode:
-    # WAKTU CERAH: BIRU MUDA & PUTIH
-    bg_main = "#F0F9FF"
-    bg_sidebar = "#E0F2FE"
-    card_bg = "#FFFFFF"
-    card_border = "#BAE6FD"
-    text_color = "#0F172A"
-    text_sub = "#0369A1"
-    grid_color = "#E2E8F0"
-    plotly_template = "plotly_white"
-    line_main = "#0284C7"
-    line_trend = "#DC2626"
-    plotly_bg = "#FFFFFF"
+    bg_main, bg_sidebar, card_bg, card_border = "#F0F9FF", "#E0F2FE", "#FFFFFF", "#BAE6FD"
+    text_color, text_sub, grid_color = "#0F172A", "#0369A1", "#E2E8F0"
+    plotly_template, line_main, line_trend, plotly_bg = "plotly_white", "#0284C7", "#DC2626", "#FFFFFF"
 else:
-    # WAKTU GELAP: MIDNIGHT COOL BLUE
-    bg_main = "#0B1120"
-    bg_sidebar = "#020617"
-    card_bg = "#1E293B"
-    card_border = "#334155"
-    text_color = "#E2E8F0"
-    text_sub = "#94A3B8"
-    grid_color = "#1E293B"
-    plotly_template = "plotly_dark"
-    line_main = "#00E5FF"
-    line_trend = "#FF3366"
-    plotly_bg = "#0B1120"
+    bg_main, bg_sidebar, card_bg, card_border = "#0B1120", "#020617", "#1E293B", "#334155"
+    text_color, text_sub, grid_color = "#E2E8F0", "#94A3B8", "#1E293B"
+    plotly_template, line_main, line_trend, plotly_bg = "plotly_dark", "#00E5FF", "#FF3366", "#0B1120"
 
-# Inject Custom CSS berdasarkan pilihan tema
 st.markdown(f"""
     <style>
     .stApp, .main {{ background-color: {bg_main} !important; }}
@@ -122,7 +137,6 @@ st.markdown(f"""
     }}
     .stMetric label {{ color: {text_sub} !important; font-weight: 600; }}
     .stMetric div {{ color: {text_color} !important; }}
-    
     .stTabs [aria-selected="true"] {{ color: #0284C7 !important; border-bottom-color: #0284C7 !important; }}
     
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
@@ -130,45 +144,15 @@ st.markdown(f"""
         -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
     }}
     
-    /* Sembunyikan Bawaan Streamlit */
-    #MainMenu, footer, header {{ visibility: hidden; }}
+    #MainMenu, footer, header {{ visibility: hidden !important; display: none !important; }}
     [data-testid="stStatusWidget"] {{ display: none !important; }}
     </style>
 """, unsafe_allow_html=True)
 
-# INJEKSI JS: MENUBAH JUDUL TAB BROWSER & MENYEMBUNYIKAN MANAGE APP + INSPECT
-components.html(
-    """<script>
-    const doc = window.parent.document;
-    
-    // 1. Ubah Judul Tab Browser (Hapus '· Streamlit')
-    doc.title = "GAW Lore Lindu Bariri";
-    
-    // 2. Injeksi CSS Sembunyikan 'Manage app' Button Secara Paksa
-    const style = doc.createElement('style');
-    style.innerHTML = `
-        [data-testid="stStatusWidget"],
-        [data-testid="manage-app-button"],
-        .stAppViewer,
-        footer,
-        #MainMenu { display: none !important; }
-    `;
-    doc.head.appendChild(style);
-
-    // 3. Matikan Klik Kanan & F12
-    doc.addEventListener('contextmenu', event => event.preventDefault());
-    doc.addEventListener('keydown', function(e) {
-        if(e.keyCode == 123) { e.preventDefault(); return false; }
-        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) { e.preventDefault(); return false; }
-        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
-    });
-    </script>""", height=0, width=0
-)
-
 custom_bg = dict(paper_bgcolor=plotly_bg, plot_bgcolor=plotly_bg, font=dict(color=text_color))
 
 # ------------------------------------------------------------------------------
-# 5. FILTERING DATA & METRICS HEADER
+# 5. FILTERING DATA & METRICS
 # ------------------------------------------------------------------------------
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
