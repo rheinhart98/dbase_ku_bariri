@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 
 # ------------------------------------------------------------------------------
-# 1. KONFIGURASI HALAMAN & PROTEKSI FRONTEND (KLIK KANAN & COPY PASTE)
+# 1. KONFIGURASI HALAMAN & PROTEKSI FRONTEND
 # ------------------------------------------------------------------------------
 st.set_page_config(
     page_title="GAW Lore Lindu Bariri",
@@ -18,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# A. Proteksi CSS: Matikan Block / Copy-Paste Text
+# Mematikan Block & Copy Text
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
@@ -28,8 +28,6 @@ st.markdown("""
         border-radius: 10px;
         border: 1px solid #2e364f;
     }
-    
-    /* Mematikan Fitur Select Text & Copy-Paste */
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span {
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
@@ -39,27 +37,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# B. Proteksi JS: Matikan Klik Kanan & Tombol F12/Inspect Element
+# Mematikan Klik Kanan & F12
 components.html(
     """
     <script>
     const doc = window.parent.document;
-    
-    // 1. Matikan Klik Kanan
     doc.addEventListener('contextmenu', event => event.preventDefault());
-
-    // 2. Matikan Shortcut Inspect Element & Source Code
     doc.addEventListener('keydown', function(e) {
-        if(e.keyCode == 123) { e.preventDefault(); return false; } // Blokir F12
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 73) { e.preventDefault(); return false; } // Blokir Ctrl+Shift+I
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 67) { e.preventDefault(); return false; } // Blokir Ctrl+Shift+C
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 74) { e.preventDefault(); return false; } // Blokir Ctrl+Shift+J
-        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; } // Blokir Ctrl+U (View Source)
+        if(e.keyCode == 123) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 73) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 67) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 74) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
     });
     </script>
     """,
-    height=0,
-    width=0
+    height=0, width=0
 )
 
 # ------------------------------------------------------------------------------
@@ -71,8 +64,6 @@ URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/O
 @st.cache_data(ttl=1800)
 def load_data(url):
     df = pd.read_csv(url)
-    
-    # Parse UTC Datetime dan Tambah 8 Jam untuk WITA
     df['Date_Time'] = pd.to_datetime(
         df['Tahun'].astype(str) + '-' + 
         df['Bulan'].astype(str) + '-' + 
@@ -126,7 +117,8 @@ start_date, end_date = st.sidebar.date_input(
     max_value=max_date
 )
 
-apply_ma = st.sidebar.checkbox("Gunakan Moving Average")
+show_trend = st.sidebar.checkbox("📈 Tampilkan Garis Tren Linear", value=True)
+apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela Jam (MA):", 3, 72, 24) if apply_ma else 1
 
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
@@ -174,32 +166,58 @@ st.markdown("---")
 # 5. TABS INTERFACE
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📈 Time Series", 
+    "📈 Time Series Interaktif & Tren", 
     "📊 Statistik (WITA)", 
     "🌍 Acuan Global", 
     "🔒 Download Data"
 ])
 
-# --- TAB 1: TIME SERIES ---
+# --- TAB 1: TIME SERIES & LINEAR TRENDLINE ---
 with tab1:
-    fig = px.line(
-        df_filtered, 
-        x="Date_Time", 
-        y=f"{selected_param}_plot", 
-        title=f"Tren Waktu: {selected_param}",
-        labels={"Date_Time": "Waktu Lokal (WITA)", f"{selected_param}_plot": selected_param},
-        template="plotly_dark"
-    )
-    fig.update_traces(line_color='#00d2ff', line_width=1.5)
-    
+    fig = go.Figure()
+
+    # 1. Plot Data Utama (Raw / Moving Average)
+    fig.add_trace(go.Scatter(
+        x=df_filtered["Date_Time"],
+        y=df_filtered[f'{selected_param}_plot'],
+        mode='lines',
+        name=f"Data {selected_param} {'(MA)' if apply_ma else ''}",
+        line=dict(color='#00d2ff', width=1.5)
+    ))
+
+    # 2. Hitung & Plot Garis Tren Linear (Regresi)
+    df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
+    if show_trend and len(df_trend_valid) > 1:
+        x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
+        y_vals = df_trend_valid[selected_param]
+        
+        slope, intercept = np.polyfit(x_secs, y_vals, 1)
+        trend_y = slope * x_secs + intercept
+        
+        fig.add_trace(go.Scatter(
+            x=df_trend_valid["Date_Time"],
+            y=trend_y,
+            mode='lines',
+            name='Garis Tren Linear',
+            line=dict(color='#ff007f', width=2.5, dash='dash')
+        ))
+
+    # 3. Garis Acuan Global
     if has_benchmark:
         fig.add_hline(
             y=GLOBAL_BENCHMARKS[selected_param]["val"], 
-            line_dash="dash", line_color="red", 
+            line_dash="dot", line_color="red", 
             annotation_text=f"Global Ref: {GLOBAL_BENCHMARKS[selected_param]['val']}"
         )
-    
-    fig.update_layout(hovermode="x unified", height=500)
+
+    fig.update_layout(
+        title=f"Tren Waktu Pengamatan: {selected_param}",
+        xaxis_title="Waktu Lokal (WITA)",
+        yaxis_title=selected_param,
+        hovermode="x unified",
+        template="plotly_dark",
+        height=500
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 # --- TAB 2: ANALISIS STATISTIK BERJENJANG ---
