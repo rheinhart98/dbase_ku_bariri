@@ -13,16 +13,11 @@ BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 # ------------------------------------------------------------------------------
 st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, layout="wide", initial_sidebar_state="expanded")
 
-# CUSTOM CSS: TEMA GELAP DINGIN (MIDNIGHT BLUE) & PROTEKSI
 st.markdown("""
     <style>
-    /* Warna Background Utama (Sangat Gelap Kebiruan) */
     .stApp, .main { background-color: #0B1120 !important; }
-    
-    /* Warna Background Sidebar */
     [data-testid="stSidebar"] { background-color: #020617 !important; border-right: 1px solid #1E293B; }
     
-    /* Styling Kartu Metrik (Navy Blue) */
     .stMetric { 
         background-color: #1E293B; 
         padding: 15px; 
@@ -32,23 +27,18 @@ st.markdown("""
     }
     .stMetric label { color: #94A3B8 !important; }
     
-    /* Styling Tabs */
     .stTabs [data-baseweb="tab-list"] { background-color: transparent; }
     .stTabs [data-baseweb="tab"] { color: #94A3B8; }
     .stTabs [aria-selected="true"] { color: #38BDF8 !important; border-bottom-color: #38BDF8 !important; }
     
-    /* Mematikan Select Text & Copy-Paste */
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span {
         -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
-        color: #E2E8F0; /* Teks dominan putih kebiruan */
+        color: #E2E8F0;
     }
-    
-    /* Warna Info Box */
     .stAlert { background-color: #0F172A; border: 1px solid #38BDF8; color: #E2E8F0; }
     </style>
 """, unsafe_allow_html=True)
 
-# Mematikan Klik Kanan & F12
 components.html(
     """<script>
     const doc = window.parent.document;
@@ -61,9 +51,8 @@ components.html(
     </script>""", height=0, width=0
 )
 
-# Template Warna Plotly Khusus (Menyesuaikan Tema UI)
-custom_bg = dict(paper_bgcolor='#0B1120', plot_bgcolor='#0B1120', font=dict(color='#E2E8F0'), 
-                 xaxis=dict(gridcolor='#1E293B'), yaxis=dict(gridcolor='#1E293B'))
+# Kustomisasi Warna Background Plotly Tanpa Duplikasi Axis
+custom_bg = dict(paper_bgcolor='#0B1120', plot_bgcolor='#0B1120', font=dict(color='#E2E8F0'))
 
 # ------------------------------------------------------------------------------
 # 2. LOAD DATA
@@ -164,20 +153,20 @@ tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap"
 
 with tab1:
     fig = go.Figure()
-    # Warna garis utama: Biru Terang (Cyan/Ice Blue)
     fig.add_trace(go.Scatter(x=df_filtered["Date_Time"], y=df_filtered[f'{selected_param}_plot'], mode='lines', name=f"Data {selected_param}", line=dict(color='#00E5FF', width=1.5)))
     
     df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
         slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_param], 1)
-        # Warna garis tren: Merah Muda Kontras
         fig.add_trace(go.Scatter(x=df_trend_valid["Date_Time"], y=slope * x_secs + intercept, mode='lines', name='Tren Linear', line=dict(color='#FF3366', width=2.5, dash='dash')))
     
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
     
     fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template="plotly_dark", height=500, **custom_bg)
+    fig.update_xaxes(gridcolor='#1E293B')
+    fig.update_yaxes(gridcolor='#1E293B')
     st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
@@ -190,6 +179,8 @@ with tab2:
         with c_top1:
             fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template="plotly_dark", title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#818CF8', '#0EA5E9'])
             fig_yearly.update_layout(showlegend=False, height=380, **custom_bg)
+            fig_yearly.update_xaxes(gridcolor='#1E293B')
+            fig_yearly.update_yaxes(gridcolor='#1E293B')
             st.plotly_chart(fig_yearly, use_container_width=True)
             
         with c_top2:
@@ -197,6 +188,8 @@ with tab2:
             fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template="plotly_dark", title="Pola Musiman Bulanan")
             fig_monthly.update_traces(line_color='#38BDF8', line_width=3, marker=dict(size=8, color='#E2E8F0'))
             fig_monthly.update_layout(height=380, **custom_bg)
+            fig_monthly.update_xaxes(gridcolor='#1E293B')
+            fig_monthly.update_yaxes(gridcolor='#1E293B')
             st.plotly_chart(fig_monthly, use_container_width=True)
             
         st.markdown("---")
@@ -206,14 +199,17 @@ with tab2:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
             fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template="plotly_dark", title="Siklus Diurnal (WITA)")
             fig_diurnal.update_traces(line_color='#818CF8', line_width=3, marker=dict(size=8))
-            fig_diurnal.update_layout(xaxis=dict(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3]), **custom_bg)
+            fig_diurnal.update_layout(height=380, **custom_bg)
+            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3], gridcolor='#1E293B')
+            fig_diurnal.update_yaxes(gridcolor='#1E293B')
             st.plotly_chart(fig_diurnal, use_container_width=True)
             
         with c_bot2:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
-            # Heatmap dengan tema Ice (Dingin)
             fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template="plotly_dark", title="Heatmap Konsentrasi", color_continuous_scale="ice")
-            fig_heat.update_layout(xaxis=dict(tickmode='array', tickvals=list(range(24))), **custom_bg)
+            fig_heat.update_layout(height=380, **custom_bg)
+            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)), gridcolor='#1E293B')
+            fig_heat.update_yaxes(gridcolor='#1E293B')
             st.plotly_chart(fig_heat, use_container_width=True)
 
 with tab3:
