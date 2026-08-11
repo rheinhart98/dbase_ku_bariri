@@ -27,7 +27,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 2. LOAD DATA DARI GITHUB DATABASE
+# 2. LOAD DATA & KONVERSI WAKTU KE WITA (UTC +8)
 # ------------------------------------------------------------------------------
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
@@ -35,13 +35,22 @@ URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/O
 @st.cache_data(ttl=1800)
 def load_data(url):
     df = pd.read_csv(url)
+    
+    # 1. Parse UTC Datetime dan Tambah 8 Jam untuk WITA
     df['Date_Time'] = pd.to_datetime(
         df['Tahun'].astype(str) + '-' + 
         df['Bulan'].astype(str) + '-' + 
         df['Tanggal'].astype(str) + ' ' + 
         df['Jam'].astype(str) + ':00:00', 
         errors='coerce'
-    )
+    ) + pd.Timedelta(hours=8)
+    
+    # 2. Perbarui Kolom Waktu agar Sesuai dengan Waktu WITA
+    df['Tahun'] = df['Date_Time'].dt.year
+    df['Bulan'] = df['Date_Time'].dt.month
+    df['Tanggal'] = df['Date_Time'].dt.day
+    df['Jam'] = df['Date_Time'].dt.hour
+    
     return df
 
 GLOBAL_BENCHMARKS = {
@@ -57,7 +66,7 @@ GLOBAL_BENCHMARKS = {
 # 3. SIDEBAR NAVIGATION & FILTER
 # ------------------------------------------------------------------------------
 st.sidebar.title("🌍 Bariri Observatory")
-st.sidebar.caption("Sistem Monitoring Kualitas Udara & Gas Rumah Kaca")
+st.sidebar.caption("Sistem Monitoring Kualitas Udara & Gas Rumah Kaca (WITA)")
 st.sidebar.markdown("---")
 
 instrument = st.sidebar.radio("📌 Pilih Instrumen / Alat:", ["Picarro (GHG)", "Ozon (ACOEM)"])
@@ -75,7 +84,7 @@ min_date = df['Date_Time'].min().date()
 max_date = df['Date_Time'].max().date()
 
 start_date, end_date = st.sidebar.date_input(
-    "📅 Rentang Waktu Tanggal:", 
+    "📅 Rentang Waktu Tanggal (WITA):", 
     [min_date, max_date], 
     min_value=min_date, 
     max_value=max_date
@@ -98,7 +107,7 @@ else:
 # 4. DASHBOARD HEADER & METRICS
 # ------------------------------------------------------------------------------
 st.title(f"📡 Dashboard Monitoring: {instrument}")
-st.caption(f"Lokasi: Stasiun Bariri, Sulawesi Tengah | Periode: {start_date} s/d {end_date}")
+st.caption(f"Lokasi: Stasiun Bariri, Sulawesi Tengah | Zona Waktu: WITA (UTC+8) | Periode: {start_date} s/d {end_date}")
 
 valid_series = df_filtered[selected_param].dropna()
 mean_val = valid_series.mean() if not valid_series.empty else 0
@@ -130,7 +139,7 @@ st.markdown("---")
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
     "📈 Time Series Interaktif", 
-    "📊 Statistik Waktu (Tahunan, Bulanan, Jam-jaman)", 
+    "📊 Statistik Waktu (Tahunan, Bulanan, Jam-jaman WITA)", 
     "🌍 Perbandingan Global", 
     "📥 Custom Download Data"
 ])
@@ -142,7 +151,7 @@ with tab1:
         x="Date_Time", 
         y=f"{selected_param}_plot", 
         title=f"Tren Waktu: {selected_param} {'(Moving Average)' if apply_ma else ''}",
-        labels={"Date_Time": "Waktu (WITA)", f"{selected_param}_plot": selected_param},
+        labels={"Date_Time": "Waktu Lokal (WITA)", f"{selected_param}_plot": selected_param},
         template="plotly_dark"
     )
     fig.update_traces(line_color='#00d2ff', line_width=1.5)
@@ -158,9 +167,9 @@ with tab1:
     fig.update_layout(hovermode="x unified", height=500)
     st.plotly_chart(fig, use_container_width=True)
 
-# --- TAB 2: ANALISIS STATISTIK BERJENJANG (TAHUNAN, BULANAN, JAM-JAMAN) ---
+# --- TAB 2: ANALISIS STATISTIK BERJENJANG (WITA) ---
 with tab2:
-    st.subheader("📊 Analisis Variabilitas Waktu (Tahunan, Bulanan & Siklus Jam-jaman)")
+    st.subheader("📊 Analisis Variabilitas Waktu (WITA)")
     
     df_stats = df_filtered.dropna(subset=[selected_param]).copy()
     
@@ -171,7 +180,7 @@ with tab2:
         
         c_top1, c_top2 = st.columns(2)
         
-        # 1. TAMPILAN TAHUNAN (Boxplot per Tahun)
+        # 1. TAHUNAN
         with c_top1:
             st.markdown("#### 📅 1. Distribusi Statistik Tahunan")
             fig_yearly = px.box(
@@ -185,7 +194,7 @@ with tab2:
             fig_yearly.update_layout(showlegend=False, height=380)
             st.plotly_chart(fig_yearly, use_container_width=True)
             
-        # 2. TAMPILAN BULANAN (Pola Musiman)
+        # 2. BULANAN
         with c_top2:
             st.markdown("#### 🗓️ 2. Pola Climatology / Musiman Bulanan")
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].agg(['mean', 'std']).reset_index().sort_values('Bulan')
@@ -205,7 +214,7 @@ with tab2:
             
         st.markdown("---")
         
-        # 3. TAMPILAN JAM-JAMAN (Siklus Diurnal 24 Jam)
+        # 3. JAM-JAMAN (DIURNAL WITA)
         st.markdown("#### ⏰ 3. Siklus Diurnal Jam-jaman (Jam 00:00 - 23:00 WITA)")
         col_d1, col_d2 = st.columns([3, 1])
         
@@ -213,8 +222,6 @@ with tab2:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].agg(['mean', 'min', 'max', 'std']).reset_index()
             
             fig_diurnal = go.Figure()
-            
-            # Line Rata-Rata Diurnal
             fig_diurnal.add_trace(go.Scatter(
                 x=diurnal_agg['Jam'], 
                 y=diurnal_agg['mean'],
@@ -225,7 +232,7 @@ with tab2:
             ))
             
             fig_diurnal.update_layout(
-                title=f"Profil Rata-Rata Diurnal Jam-jaman: {selected_param}",
+                title=f"Profil Rata-Rata Diurnal Jam-jaman (WITA): {selected_param}",
                 xaxis=dict(title="Jam Dalam Sehari (WITA)", tickmode='linear', dtick=1),
                 yaxis=dict(title=selected_param),
                 template="plotly_dark",
@@ -234,7 +241,7 @@ with tab2:
             st.plotly_chart(fig_diurnal, use_container_width=True)
             
         with col_d2:
-            st.markdown("##### 📌 Karakteristik Puncak Jam-jaman")
+            st.markdown("##### 📌 Karakteristik Puncak WITA")
             if not diurnal_agg.empty:
                 max_hour_row = diurnal_agg.loc[diurnal_agg['mean'].idxmax()]
                 min_hour_row = diurnal_agg.loc[diurnal_agg['mean'].idxmin()]
@@ -273,7 +280,7 @@ with tab3:
 
 # --- TAB 4: CUSTOM DOWNLOAD DATA ---
 with tab4:
-    st.subheader("📥 Filter & Unduh Data Kustom")
+    st.subheader("📥 Filter & Unduh Data Kustom (WITA)")
     all_cols = list(df_filtered.columns)
     selected_cols = st.multiselect("Pilih Kolom:", all_cols, default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
     
@@ -287,8 +294,8 @@ with tab4:
     
     csv_bytes = df_download.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="💾 Unduh Dataset Terfilter (CSV)",
+        label="💾 Unduh Dataset Terfilter WITA (CSV)",
         data=csv_bytes,
-        file_name=f"Bariri_{selected_param}_{start_date}_to_{end_date}.csv",
+        file_name=f"Bariri_WITA_{selected_param}_{start_date}_to_{end_date}.csv",
         mime="text/csv"
     )
