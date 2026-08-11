@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # ------------------------------------------------------------------------------
-# 1. KONFIGURASI HALAMAN & THEME
+# 1. KONFIGURASI HALAMAN
 # ------------------------------------------------------------------------------
 st.set_page_config(
     page_title="Bariri Atmospheric Observatory",
@@ -14,7 +14,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Styling
 st.markdown("""
     <style>
     .main { background-color: #0e1117; }
@@ -23,9 +22,6 @@ st.markdown("""
         padding: 15px;
         border-radius: 10px;
         border: 1px solid #2e364f;
-    }
-    div[data-testid="stSidebarUserContent"] {
-        background-color: #161b26;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -48,14 +44,13 @@ def load_data(url):
     )
     return df
 
-# Baseline / Standar Global Acuan (WMO / WDCGG / WHO)
 GLOBAL_BENCHMARKS = {
-    "CO2_sync": {"name": "Rata-Rata CO2 Global (WMO 2024)", "val": 422.0, "unit": "ppm"},
+    "CO2_sync": {"name": "Rata-Rata CO2 Global (WMO)", "val": 422.0, "unit": "ppm"},
     "CO2_dry_sync": {"name": "Rata-Rata CO2 Dry Global", "val": 422.0, "unit": "ppm"},
     "CH4_sync": {"name": "Rata-Rata CH4 Global (WMO)", "val": 1.93, "unit": "ppm"},
     "CH4_dry_sync": {"name": "Rata-Rata CH4 Dry Global", "val": 1.93, "unit": "ppm"},
     "CO_sync": {"name": "Latar Belakang CO Global", "val": 0.10, "unit": "ppm"},
-    "O3_Concentration_ppb": {"name": "Batas Pedoman Udara Ambien WHO (O3)", "val": 50.0, "unit": "ppb"}
+    "O3_Concentration_ppb": {"name": "Pedoman Udara WHO (O3)", "val": 50.0, "unit": "ppb"}
 }
 
 # ------------------------------------------------------------------------------
@@ -76,7 +71,6 @@ else:
 
 selected_param = st.sidebar.selectbox("📊 Pilih Parameter:", available_params)
 
-# Filter Tanggal
 min_date = df['Date_Time'].min().date()
 max_date = df['Date_Time'].max().date()
 
@@ -87,18 +81,14 @@ start_date, end_date = st.sidebar.date_input(
     max_value=max_date
 )
 
-# Smooth Moving Average
 apply_ma = st.sidebar.checkbox("Gunakan Moving Average (Smoothening)")
 ma_window = st.sidebar.slider("Jendela Jam (MA):", 3, 72, 24) if apply_ma else 1
 
-# Filtering Data
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
 
-# Filter nilai -9999
 df_filtered[selected_param] = df_filtered[selected_param].replace(-9999, np.nan)
 
-# Calculate Moving Average
 if apply_ma:
     df_filtered[f'{selected_param}_plot'] = df_filtered[selected_param].rolling(window=ma_window, min_periods=1).mean()
 else:
@@ -120,7 +110,6 @@ col1.metric("Rata-Rata Lokal", f"{mean_val:.3f}")
 col2.metric("Nilai Maksimum", f"{max_val:.3f}")
 col3.metric("Nilai Minimum", f"{min_val:.3f}")
 
-# Cek apakah parameter punya baseline global
 has_benchmark = selected_param in GLOBAL_BENCHMARKS
 if has_benchmark:
     bench_val = GLOBAL_BENCHMARKS[selected_param]["val"]
@@ -137,12 +126,12 @@ else:
 st.markdown("---")
 
 # ------------------------------------------------------------------------------
-# 5. TABS INTERFACE (TIME SERIES, GLOBAL COMPARISON, STATS, DOWNLOAD)
+# 5. TABS INTERFACE
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
     "📈 Time Series Interaktif", 
+    "📊 Statistik Waktu (Tahunan, Bulanan, Jam-jaman)", 
     "🌍 Perbandingan Global", 
-    "📊 Analisis Statistik", 
     "📥 Custom Download Data"
 ])
 
@@ -158,7 +147,6 @@ with tab1:
     )
     fig.update_traces(line_color='#00d2ff', line_width=1.5)
     
-    # Tambah garis acuan global jika tersedia
     if has_benchmark:
         fig.add_hline(
             y=GLOBAL_BENCHMARKS[selected_param]["val"], 
@@ -170,14 +158,99 @@ with tab1:
     fig.update_layout(hovermode="x unified", height=500)
     st.plotly_chart(fig, use_container_width=True)
 
-# --- TAB 2: PERBANDINGAN GLOBAL ---
+# --- TAB 2: ANALISIS STATISTIK BERJENJANG (TAHUNAN, BULANAN, JAM-JAMAN) ---
 with tab2:
+    st.subheader("📊 Analisis Variabilitas Waktu (Tahunan, Bulanan & Siklus Jam-jaman)")
+    
+    df_stats = df_filtered.dropna(subset=[selected_param]).copy()
+    
+    if not df_stats.empty:
+        month_names = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 
+                       7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'}
+        df_stats['Nama_Bulan'] = df_stats['Bulan'].map(month_names)
+        
+        c_top1, c_top2 = st.columns(2)
+        
+        # 1. TAMPILAN TAHUNAN (Boxplot per Tahun)
+        with c_top1:
+            st.markdown("#### 📅 1. Distribusi Statistik Tahunan")
+            fig_yearly = px.box(
+                df_stats, 
+                x="Tahun", 
+                y=selected_param, 
+                color="Tahun",
+                title=f"Variasi Antar Tahun: {selected_param}",
+                template="plotly_dark"
+            )
+            fig_yearly.update_layout(showlegend=False, height=380)
+            st.plotly_chart(fig_yearly, use_container_width=True)
+            
+        # 2. TAMPILAN BULANAN (Pola Musiman)
+        with c_top2:
+            st.markdown("#### 🗓️ 2. Pola Climatology / Musiman Bulanan")
+            df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].agg(['mean', 'std']).reset_index().sort_values('Bulan')
+            
+            fig_monthly = px.line(
+                df_monthly_agg, 
+                x="Nama_Bulan", 
+                y="mean", 
+                markers=True,
+                title=f"Rata-Rata Bulanan: {selected_param}",
+                labels={"Nama_Bulan": "Bulan", "mean": f"Rata-Rata {selected_param}"},
+                template="plotly_dark"
+            )
+            fig_monthly.update_traces(line_color='#00e676', line_width=3, marker_size=8)
+            fig_monthly.update_layout(height=380)
+            st.plotly_chart(fig_monthly, use_container_width=True)
+            
+        st.markdown("---")
+        
+        # 3. TAMPILAN JAM-JAMAN (Siklus Diurnal 24 Jam)
+        st.markdown("#### ⏰ 3. Siklus Diurnal Jam-jaman (Jam 00:00 - 23:00 WITA)")
+        col_d1, col_d2 = st.columns([3, 1])
+        
+        with col_d1:
+            diurnal_agg = df_stats.groupby('Jam')[selected_param].agg(['mean', 'min', 'max', 'std']).reset_index()
+            
+            fig_diurnal = go.Figure()
+            
+            # Line Rata-Rata Diurnal
+            fig_diurnal.add_trace(go.Scatter(
+                x=diurnal_agg['Jam'], 
+                y=diurnal_agg['mean'],
+                mode='lines+markers',
+                name='Rata-Rata Jam-jaman',
+                line=dict(color='#ff9100', width=3),
+                marker=dict(size=8)
+            ))
+            
+            fig_diurnal.update_layout(
+                title=f"Profil Rata-Rata Diurnal Jam-jaman: {selected_param}",
+                xaxis=dict(title="Jam Dalam Sehari (WITA)", tickmode='linear', dtick=1),
+                yaxis=dict(title=selected_param),
+                template="plotly_dark",
+                height=420
+            )
+            st.plotly_chart(fig_diurnal, use_container_width=True)
+            
+        with col_d2:
+            st.markdown("##### 📌 Karakteristik Puncak Jam-jaman")
+            if not diurnal_agg.empty:
+                max_hour_row = diurnal_agg.loc[diurnal_agg['mean'].idxmax()]
+                min_hour_row = diurnal_agg.loc[diurnal_agg['mean'].idxmin()]
+                
+                st.info(f"**Jam Puncak Tertinggi:**\nJam **{int(max_hour_row['Jam']):02d}:00** WITA\n({max_hour_row['mean']:.3f})")
+                st.success(f"**Jam Puncak Terendah:**\nJam **{int(min_hour_row['Jam']):02d}:00** WITA\n({min_hour_row['mean']:.3f})")
+    else:
+        st.warning("Tidak ada data valid yang dapat ditampilkan untuk analisis statistik pada rentang waktu ini.")
+
+# --- TAB 3: PERBANDINGAN GLOBAL ---
+with tab3:
     st.subheader("🌍 Perbandingan Konsentrasi Lokal vs Acuan Standar Global")
     if has_benchmark:
         bench_info = GLOBAL_BENCHMARKS[selected_param]
         st.info(f"**Baseline Acuan:** {bench_info['name']} = **{bench_info['val']} {bench_info['unit']}**")
         
-        # Grafik Perbandingan Bar Chart
         comp_df = pd.DataFrame({
             "Kategori": ["Pengamatan Bariri (Rata-Rata)", bench_info["name"]],
             "Nilai": [mean_val, bench_info["val"]]
@@ -195,48 +268,23 @@ with tab2:
         )
         fig_comp.update_layout(height=400, showlegend=False)
         st.plotly_chart(fig_comp, use_container_width=True)
-        
-        st.write(f"""
-        **Analisis Perbandingan:**
-        - Nilai pengamatan Bariri berada **{abs(diff):.3f} {bench_info['unit']} {'di atas' if diff > 0 else 'di bawah'}** nilai acuan global.
-        - Penjelasan: Variasi lokal dipengaruhi oleh dinamika cuaca lokal, siklus vegetasi harian, dan tutupan lahan sekitar Stasiun Bariri.
-        """)
     else:
         st.warning("Parameter ini tidak memiliki acuan baseline global spesifik.")
 
-# --- TAB 3: STATISTIK & DISTRIBUSI ---
-with tab3:
-    c1, c2 = st.columns(2)
-    with c1:
-        st.subheader("Boxplot Distribusi Data")
-        fig_box = px.box(df_filtered, y=selected_param, points="outliers", template="plotly_dark")
-        st.plotly_chart(fig_box, use_container_width=True)
-    
-    with c2:
-        st.subheader("Profil Rata-Rata Diurnal (Jam-jaman)")
-        diurnal = df_filtered.groupby("Jam")[selected_param].mean().reset_index()
-        fig_diurnal = px.bar(diurnal, x="Jam", y=selected_param, template="plotly_dark", color_discrete_sequence=['#57b8ff'])
-        st.plotly_chart(fig_diurnal, use_container_width=True)
-
 # --- TAB 4: CUSTOM DOWNLOAD DATA ---
 with tab4:
-    st.subheader("📥 Filter & Unduh Data kustom")
-    st.write("Pilih kolom data yang ingin Anda unduh:")
-    
+    st.subheader("📥 Filter & Unduh Data Kustom")
     all_cols = list(df_filtered.columns)
     selected_cols = st.multiselect("Pilih Kolom:", all_cols, default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
     
-    # Checkbox hilangkan missing data
     drop_missing = st.checkbox("Keluarkan data missing (-9999 / NaN)", value=True)
     
     df_download = df_filtered[selected_cols].copy()
     if drop_missing and selected_param in df_download.columns:
         df_download = df_download.dropna(subset=[selected_param])
     
-    # Preview Data
     st.dataframe(df_download.head(50), use_container_width=True)
     
-    # Export Button
     csv_bytes = df_download.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="💾 Unduh Dataset Terfilter (CSV)",
