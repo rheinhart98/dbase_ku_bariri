@@ -17,7 +17,7 @@ st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, 
 components.html(
     """<script>
     const doc = window.parent.document;
-    
+
     function lockTitle() {
         if (doc.title !== "GAW Lore Lindu Bariri") {
             doc.title = "GAW Lore Lindu Bariri";
@@ -126,23 +126,23 @@ st.markdown(f"""
     <style>
     .stApp, .main {{ background-color: {bg_main} !important; }}
     [data-testid="stSidebar"] {{ background-color: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
-    
-    .stMetric {{ 
-        background-color: {card_bg} !important; 
-        padding: 15px; 
-        border-radius: 12px; 
-        border: 1px solid {card_border}; 
+
+    .stMetric {{
+        background-color: {card_bg} !important;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid {card_border};
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }}
     .stMetric label {{ color: {text_sub} !important; font-weight: 600; }}
     .stMetric div {{ color: {text_color} !important; }}
     .stTabs [aria-selected="true"] {{ color: #0284C7 !important; border-bottom-color: #0284C7 !important; }}
-    
+
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
         color: {text_color} !important;
         -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
     }}
-    
+
     #MainMenu, footer, header {{ visibility: hidden !important; display: none !important; }}
     [data-testid="stStatusWidget"] {{ display: none !important; }}
     </style>
@@ -218,16 +218,16 @@ tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap"
 with tab1:
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_filtered["Date_Time"], y=df_filtered[f'{selected_param}_plot'], mode='lines', name=f"Data {selected_param}", line=dict(color=line_main, width=1.5)))
-    
+
     df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
         slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_param], 1)
         fig.add_trace(go.Scatter(x=df_trend_valid["Date_Time"], y=slope * x_secs + intercept, mode='lines', name='Tren Linear', line=dict(color=line_trend, width=2.5, dash='dash')))
-    
+
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
-    
+
     fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=500)
     apply_chart_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
@@ -237,14 +237,14 @@ with tab2:
     if not df_stats.empty:
         month_names = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'}
         df_stats['Nama_Bulan'] = df_stats['Bulan'].map(month_names)
-        
+
         c_top1, c_top2 = st.columns(2)
         with c_top1:
             fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
             fig_yearly.update_layout(showlegend=False, height=380)
             apply_chart_theme(fig_yearly)
             st.plotly_chart(fig_yearly, use_container_width=True)
-            
+
         with c_top2:
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title="Pola Musiman Bulanan")
@@ -252,9 +252,9 @@ with tab2:
             fig_monthly.update_layout(height=380)
             apply_chart_theme(fig_monthly)
             st.plotly_chart(fig_monthly, use_container_width=True)
-            
+
         st.markdown("---")
-        
+
         c_bot1, c_bot2 = st.columns(2)
         with c_bot1:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
@@ -264,7 +264,7 @@ with tab2:
             fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3])
             apply_chart_theme(fig_diurnal)
             st.plotly_chart(fig_diurnal, use_container_width=True)
-            
+
         with c_bot2:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title="Heatmap Konsentrasi", color_continuous_scale="Blues" if light_mode else "ice")
@@ -278,7 +278,7 @@ with tab3:
     if has_benchmark:
         st.subheader("🌍 Status Indeks Terhadap Acuan Global")
         bench_info = GLOBAL_BENCHMARKS[selected_param]
-        
+
         c_gauge1, c_gauge2 = st.columns([1, 1])
         with c_gauge1:
             fig_gauge = go.Figure(go.Indicator(
@@ -304,15 +304,15 @@ with tab3:
             fig_gauge.update_layout(template=plotly_template, height=400)
             apply_chart_theme(fig_gauge)
             st.plotly_chart(fig_gauge, use_container_width=True)
-            
+
         with c_gauge2:
             st.markdown(f"""
             ### Analisis Status:
             - **Nilai Stasiun Bariri:** `{mean_val:.2f} {bench_info['unit']}`
             - **Ambang Batas Global:** `{bench_info['val']} {bench_info['unit']}`
-            
+
             **Kesimpulan:**
-            Konsentrasi {selected_param} saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}** 
+            Konsentrasi {selected_param} saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}**
             *{'di atas (lebih buruk/tinggi)' if mean_val > bench_info['val'] else 'di bawah (lebih baik/rendah)'}* dari nilai standar latar belakang global.
             """)
     else:
@@ -323,7 +323,7 @@ with tab4:
     col_auth1, col_auth2 = st.columns(2)
     with col_auth1: user_id = st.text_input("User ID:", key="input_user_id")
     with col_auth2: user_pass = st.text_input("Password:", type="password", key="input_password")
-        
+
     if user_id == "gawbariri" and user_pass == "gaw97094":
         st.success("✅ Autentikasi Berhasil!")
         selected_cols = st.multiselect("Pilih Kolom Data:", list(df_filtered.columns), default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
