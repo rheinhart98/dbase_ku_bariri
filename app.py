@@ -13,21 +13,19 @@ BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 # ------------------------------------------------------------------------------
 st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, layout="wide", initial_sidebar_state="expanded")
 
-# INJEKSI JS: TITLE LOCKER (MENGHILANGKAN '· Streamlit') & PROTEKSI UI
+# INJEKSI JS: TITLE LOCKER & PROTEKSI UI
 components.html(
     """<script>
     const doc = window.parent.document;
     
-    // 1. Pengunci Judul Tab Browser Permanen (Menghapus '· Streamlit')
     function lockTitle() {
         if (doc.title !== "GAW Lore Lindu Bariri") {
             doc.title = "GAW Lore Lindu Bariri";
         }
     }
     lockTitle();
-    setInterval(lockTitle, 300); // Re-check setiap 0.3 detik agar tidak bisa ditimpa Streamlit
+    setInterval(lockTitle, 300);
 
-    // 2. Injeksi CSS Sembunyikan 'Manage app' & Element Bawaan
     const style = doc.createElement('style');
     style.innerHTML = `
         [data-testid="stStatusWidget"],
@@ -39,7 +37,6 @@ components.html(
     `;
     doc.head.appendChild(style);
 
-    // 3. Matikan Klik Kanan & F12
     doc.addEventListener('contextmenu', event => event.preventDefault());
     doc.addEventListener('keydown', function(e) {
         if(e.keyCode == 123) { e.preventDefault(); return false; }
@@ -50,7 +47,7 @@ components.html(
 )
 
 # ------------------------------------------------------------------------------
-# 2. LOAD DATA DARI DATABASE
+# 2. LOAD DATA
 # ------------------------------------------------------------------------------
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
@@ -112,16 +109,18 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. PENGATURAN SKEMA WARNA DUAL TEMA
+# 4. SKEMA WARNA DUAL TEMA & HELPER PLOTLY THEME
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_main, bg_sidebar, card_bg, card_border = "#F0F9FF", "#E0F2FE", "#FFFFFF", "#BAE6FD"
-    text_color, text_sub, grid_color = "#0F172A", "#0369A1", "#E2E8F0"
+    text_color, text_sub, grid_color = "#0F172A", "#0369A1", "#CBD5E1"
     plotly_template, line_main, line_trend, plotly_bg = "plotly_white", "#0284C7", "#DC2626", "#FFFFFF"
+    hover_bg, hover_text = "#FFFFFF", "#0F172A"
 else:
     bg_main, bg_sidebar, card_bg, card_border = "#0B1120", "#020617", "#1E293B", "#334155"
     text_color, text_sub, grid_color = "#E2E8F0", "#94A3B8", "#1E293B"
     plotly_template, line_main, line_trend, plotly_bg = "plotly_dark", "#00E5FF", "#FF3366", "#0B1120"
+    hover_bg, hover_text = "#1E293B", "#E2E8F0"
 
 st.markdown(f"""
     <style>
@@ -149,7 +148,33 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-custom_bg = dict(paper_bgcolor=plotly_bg, plot_bgcolor=plotly_bg, font=dict(color=text_color))
+# Fungsi Pengunci Warna Font Plotly
+def apply_chart_theme(fig):
+    fig.update_layout(
+        paper_bgcolor=plotly_bg,
+        plot_bgcolor=plotly_bg,
+        font=dict(color=text_color, family="sans-serif"),
+        title_font=dict(color=text_color, size=16),
+        legend=dict(font=dict(color=text_color)),
+        hoverlabel=dict(
+            bgcolor=hover_bg,
+            font_color=hover_text,
+            font_size=12
+        )
+    )
+    fig.update_xaxes(
+        title_font=dict(color=text_color),
+        tickfont=dict(color=text_color),
+        gridcolor=grid_color,
+        zerolinecolor=grid_color
+    )
+    fig.update_yaxes(
+        title_font=dict(color=text_color),
+        tickfont=dict(color=text_color),
+        gridcolor=grid_color,
+        zerolinecolor=grid_color
+    )
+    return fig
 
 # ------------------------------------------------------------------------------
 # 5. FILTERING DATA & METRICS
@@ -203,9 +228,8 @@ with tab1:
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
     
-    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=500, **custom_bg)
-    fig.update_xaxes(gridcolor=grid_color)
-    fig.update_yaxes(gridcolor=grid_color)
+    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=500)
+    apply_chart_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
@@ -217,18 +241,16 @@ with tab2:
         c_top1, c_top2 = st.columns(2)
         with c_top1:
             fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
-            fig_yearly.update_layout(showlegend=False, height=380, **custom_bg)
-            fig_yearly.update_xaxes(gridcolor=grid_color)
-            fig_yearly.update_yaxes(gridcolor=grid_color)
+            fig_yearly.update_layout(showlegend=False, height=380)
+            apply_chart_theme(fig_yearly)
             st.plotly_chart(fig_yearly, use_container_width=True)
             
         with c_top2:
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title="Pola Musiman Bulanan")
             fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'))
-            fig_monthly.update_layout(height=380, **custom_bg)
-            fig_monthly.update_xaxes(gridcolor=grid_color)
-            fig_monthly.update_yaxes(gridcolor=grid_color)
+            fig_monthly.update_layout(height=380)
+            apply_chart_theme(fig_monthly)
             st.plotly_chart(fig_monthly, use_container_width=True)
             
         st.markdown("---")
@@ -238,17 +260,18 @@ with tab2:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
             fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title="Siklus Diurnal (WITA)")
             fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8))
-            fig_diurnal.update_layout(height=380, **custom_bg)
-            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3], gridcolor=grid_color)
-            fig_diurnal.update_yaxes(gridcolor=grid_color)
+            fig_diurnal.update_layout(height=380)
+            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3])
+            apply_chart_theme(fig_diurnal)
             st.plotly_chart(fig_diurnal, use_container_width=True)
             
         with c_bot2:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title="Heatmap Konsentrasi", color_continuous_scale="Blues" if light_mode else "ice")
-            fig_heat.update_layout(height=380, **custom_bg)
-            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)), gridcolor=grid_color)
-            fig_heat.update_yaxes(gridcolor=grid_color)
+            fig_heat.update_layout(height=380)
+            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)))
+            fig_heat.update_coloraxes(colorbar_tickfont_color=text_color, colorbar_title_font_color=text_color)
+            apply_chart_theme(fig_heat)
             st.plotly_chart(fig_heat, use_container_width=True)
 
 with tab3:
@@ -265,7 +288,7 @@ with tab3:
                 title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 20, 'color': text_color}},
                 delta = {'reference': bench_info['val'], 'increasing': {'color': "#F43F5E"}, 'decreasing': {'color': "#10B981"}},
                 gauge = {
-                    'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': grid_color},
+                    'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': text_color},
                     'bar': {'color': line_main},
                     'bgcolor': card_bg,
                     'borderwidth': 2,
@@ -278,7 +301,8 @@ with tab3:
                         'thickness': 0.75,
                         'value': bench_info['val']}}
             ))
-            fig_gauge.update_layout(template=plotly_template, height=400, **custom_bg)
+            fig_gauge.update_layout(template=plotly_template, height=400)
+            apply_chart_theme(fig_gauge)
             st.plotly_chart(fig_gauge, use_container_width=True)
             
         with c_gauge2:
