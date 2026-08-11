@@ -9,53 +9,12 @@ import plotly.graph_objects as go
 BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 
 # ------------------------------------------------------------------------------
-# 1. KONFIGURASI HALAMAN & TEMA COOL DARK BLUE
+# 1. KONFIGURASI HALAMAN
 # ------------------------------------------------------------------------------
 st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, layout="wide", initial_sidebar_state="expanded")
 
-st.markdown("""
-    <style>
-    .stApp, .main { background-color: #0B1120 !important; }
-    [data-testid="stSidebar"] { background-color: #020617 !important; border-right: 1px solid #1E293B; }
-    
-    .stMetric { 
-        background-color: #1E293B; 
-        padding: 15px; 
-        border-radius: 10px; 
-        border: 1px solid #334155; 
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-    }
-    .stMetric label { color: #94A3B8 !important; }
-    
-    .stTabs [data-baseweb="tab-list"] { background-color: transparent; }
-    .stTabs [data-baseweb="tab"] { color: #94A3B8; }
-    .stTabs [aria-selected="true"] { color: #38BDF8 !important; border-bottom-color: #38BDF8 !important; }
-    
-    body, .stApp, p, h1, h2, h3, h4, h5, h6, span {
-        -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
-        color: #E2E8F0;
-    }
-    .stAlert { background-color: #0F172A; border: 1px solid #38BDF8; color: #E2E8F0; }
-    </style>
-""", unsafe_allow_html=True)
-
-components.html(
-    """<script>
-    const doc = window.parent.document;
-    doc.addEventListener('contextmenu', event => event.preventDefault());
-    doc.addEventListener('keydown', function(e) {
-        if(e.keyCode == 123) { e.preventDefault(); return false; }
-        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) { e.preventDefault(); return false; }
-        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
-    });
-    </script>""", height=0, width=0
-)
-
-# Kustomisasi Warna Background Plotly Tanpa Duplikasi Axis
-custom_bg = dict(paper_bgcolor='#0B1120', plot_bgcolor='#0B1120', font=dict(color='#E2E8F0'))
-
 # ------------------------------------------------------------------------------
-# 2. LOAD DATA
+# 2. LOAD DATA DARI DATABASE
 # ------------------------------------------------------------------------------
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
@@ -80,11 +39,17 @@ GLOBAL_BENCHMARKS = {
 }
 
 # ------------------------------------------------------------------------------
-# 3. SIDEBAR NAVIGATION
+# 3. SIDEBAR NAVIGATION & TOGGLE TEMA CERAH/GELAP
 # ------------------------------------------------------------------------------
 st.sidebar.image(BMKG_LOGO_URL, width=80)
 st.sidebar.title("GAW Lore Lindu Bariri")
 st.sidebar.caption("Stasiun Pemantau Atmosfer Global - BMKG")
+st.sidebar.markdown("---")
+
+# SLIDE TOGGLE MODE CERAH (LIGHT MODE)
+st.sidebar.markdown("### 🎨 Tema Tampilan")
+light_mode = st.sidebar.toggle("☀️ Mode Cerah (Light)", value=False)
+
 st.sidebar.markdown("---")
 
 instrument = st.sidebar.radio("📌 Pilih Instrumen:", ["Picarro (GHG)", "Ozon (ACOEM)"])
@@ -112,14 +77,104 @@ show_trend = st.sidebar.checkbox("📈 Tampilkan Garis Tren", value=True)
 apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
+# ------------------------------------------------------------------------------
+# 4. PENGATURAN SKEMA WARNA DUAL TEMA (DYNAMIC CSS)
+# ------------------------------------------------------------------------------
+if light_mode:
+    # WAKTU CERAH: BIRU MUDA & PUTIH
+    bg_main = "#F0F9FF"
+    bg_sidebar = "#E0F2FE"
+    card_bg = "#FFFFFF"
+    card_border = "#BAE6FD"
+    text_color = "#0F172A"
+    text_sub = "#0369A1"
+    grid_color = "#E2E8F0"
+    plotly_template = "plotly_white"
+    line_main = "#0284C7"
+    line_trend = "#DC2626"
+    plotly_bg = "#FFFFFF"
+else:
+    # WAKTU GELAP: MIDNIGHT COOL BLUE
+    bg_main = "#0B1120"
+    bg_sidebar = "#020617"
+    card_bg = "#1E293B"
+    card_border = "#334155"
+    text_color = "#E2E8F0"
+    text_sub = "#94A3B8"
+    grid_color = "#1E293B"
+    plotly_template = "plotly_dark"
+    line_main = "#00E5FF"
+    line_trend = "#FF3366"
+    plotly_bg = "#0B1120"
+
+# Inject Custom CSS berdasarkan pilihan tema
+st.markdown(f"""
+    <style>
+    .stApp, .main {{ background-color: {bg_main} !important; }}
+    [data-testid="stSidebar"] {{ background-color: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
+    
+    .stMetric {{ 
+        background-color: {card_bg} !important; 
+        padding: 15px; 
+        border-radius: 12px; 
+        border: 1px solid {card_border}; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }}
+    .stMetric label {{ color: {text_sub} !important; font-weight: 600; }}
+    .stMetric div {{ color: {text_color} !important; }}
+    
+    .stTabs [aria-selected="true"] {{ color: #0284C7 !important; border-bottom-color: #0284C7 !important; }}
+    
+    body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
+        color: {text_color} !important;
+        -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
+    }}
+    
+    /* Sembunyikan Bawaan Streamlit */
+    #MainMenu, footer, header {{ visibility: hidden; }}
+    [data-testid="stStatusWidget"] {{ display: none !important; }}
+    </style>
+""", unsafe_allow_html=True)
+
+# INJEKSI JS: MENUBAH JUDUL TAB BROWSER & MENYEMBUNYIKAN MANAGE APP + INSPECT
+components.html(
+    """<script>
+    const doc = window.parent.document;
+    
+    // 1. Ubah Judul Tab Browser (Hapus '· Streamlit')
+    doc.title = "GAW Lore Lindu Bariri";
+    
+    // 2. Injeksi CSS Sembunyikan 'Manage app' Button Secara Paksa
+    const style = doc.createElement('style');
+    style.innerHTML = `
+        [data-testid="stStatusWidget"],
+        [data-testid="manage-app-button"],
+        .stAppViewer,
+        footer,
+        #MainMenu { display: none !important; }
+    `;
+    doc.head.appendChild(style);
+
+    // 3. Matikan Klik Kanan & F12
+    doc.addEventListener('contextmenu', event => event.preventDefault());
+    doc.addEventListener('keydown', function(e) {
+        if(e.keyCode == 123) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
+    });
+    </script>""", height=0, width=0
+)
+
+custom_bg = dict(paper_bgcolor=plotly_bg, plot_bgcolor=plotly_bg, font=dict(color=text_color))
+
+# ------------------------------------------------------------------------------
+# 5. FILTERING DATA & METRICS HEADER
+# ------------------------------------------------------------------------------
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
 df_filtered[selected_param] = df_filtered[selected_param].replace(-9999, np.nan)
 df_filtered[f'{selected_param}_plot'] = df_filtered[selected_param].rolling(window=ma_window, min_periods=1).mean() if apply_ma else df_filtered[selected_param]
 
-# ------------------------------------------------------------------------------
-# 4. DASHBOARD HEADER & LOKASI
-# ------------------------------------------------------------------------------
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
     st.title(f"📡 Monitoring {instrument}")
@@ -147,26 +202,26 @@ else:
 st.markdown("---")
 
 # ------------------------------------------------------------------------------
-# 5. TABS INTERFACE
+# 6. TABS INTERFACE
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"])
 
 with tab1:
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_filtered["Date_Time"], y=df_filtered[f'{selected_param}_plot'], mode='lines', name=f"Data {selected_param}", line=dict(color='#00E5FF', width=1.5)))
+    fig.add_trace(go.Scatter(x=df_filtered["Date_Time"], y=df_filtered[f'{selected_param}_plot'], mode='lines', name=f"Data {selected_param}", line=dict(color=line_main, width=1.5)))
     
     df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
         slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_param], 1)
-        fig.add_trace(go.Scatter(x=df_trend_valid["Date_Time"], y=slope * x_secs + intercept, mode='lines', name='Tren Linear', line=dict(color='#FF3366', width=2.5, dash='dash')))
+        fig.add_trace(go.Scatter(x=df_trend_valid["Date_Time"], y=slope * x_secs + intercept, mode='lines', name='Tren Linear', line=dict(color=line_trend, width=2.5, dash='dash')))
     
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
     
-    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template="plotly_dark", height=500, **custom_bg)
-    fig.update_xaxes(gridcolor='#1E293B')
-    fig.update_yaxes(gridcolor='#1E293B')
+    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=500, **custom_bg)
+    fig.update_xaxes(gridcolor=grid_color)
+    fig.update_yaxes(gridcolor=grid_color)
     st.plotly_chart(fig, use_container_width=True)
 
 with tab2:
@@ -177,19 +232,19 @@ with tab2:
         
         c_top1, c_top2 = st.columns(2)
         with c_top1:
-            fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template="plotly_dark", title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#818CF8', '#0EA5E9'])
+            fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
             fig_yearly.update_layout(showlegend=False, height=380, **custom_bg)
-            fig_yearly.update_xaxes(gridcolor='#1E293B')
-            fig_yearly.update_yaxes(gridcolor='#1E293B')
+            fig_yearly.update_xaxes(gridcolor=grid_color)
+            fig_yearly.update_yaxes(gridcolor=grid_color)
             st.plotly_chart(fig_yearly, use_container_width=True)
             
         with c_top2:
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
-            fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template="plotly_dark", title="Pola Musiman Bulanan")
-            fig_monthly.update_traces(line_color='#38BDF8', line_width=3, marker=dict(size=8, color='#E2E8F0'))
+            fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title="Pola Musiman Bulanan")
+            fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'))
             fig_monthly.update_layout(height=380, **custom_bg)
-            fig_monthly.update_xaxes(gridcolor='#1E293B')
-            fig_monthly.update_yaxes(gridcolor='#1E293B')
+            fig_monthly.update_xaxes(gridcolor=grid_color)
+            fig_monthly.update_yaxes(gridcolor=grid_color)
             st.plotly_chart(fig_monthly, use_container_width=True)
             
         st.markdown("---")
@@ -197,19 +252,19 @@ with tab2:
         c_bot1, c_bot2 = st.columns(2)
         with c_bot1:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
-            fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template="plotly_dark", title="Siklus Diurnal (WITA)")
-            fig_diurnal.update_traces(line_color='#818CF8', line_width=3, marker=dict(size=8))
+            fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title="Siklus Diurnal (WITA)")
+            fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8))
             fig_diurnal.update_layout(height=380, **custom_bg)
-            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3], gridcolor='#1E293B')
-            fig_diurnal.update_yaxes(gridcolor='#1E293B')
+            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3], gridcolor=grid_color)
+            fig_diurnal.update_yaxes(gridcolor=grid_color)
             st.plotly_chart(fig_diurnal, use_container_width=True)
             
         with c_bot2:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
-            fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template="plotly_dark", title="Heatmap Konsentrasi", color_continuous_scale="ice")
+            fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title="Heatmap Konsentrasi", color_continuous_scale="Blues" if light_mode else "ice")
             fig_heat.update_layout(height=380, **custom_bg)
-            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)), gridcolor='#1E293B')
-            fig_heat.update_yaxes(gridcolor='#1E293B')
+            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)), gridcolor=grid_color)
+            fig_heat.update_yaxes(gridcolor=grid_color)
             st.plotly_chart(fig_heat, use_container_width=True)
 
 with tab3:
@@ -223,14 +278,14 @@ with tab3:
                 mode = "gauge+number+delta",
                 value = mean_val,
                 domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 20, 'color': '#E2E8F0'}},
+                title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 20, 'color': text_color}},
                 delta = {'reference': bench_info['val'], 'increasing': {'color': "#F43F5E"}, 'decreasing': {'color': "#10B981"}},
                 gauge = {
-                    'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': "#334155"},
-                    'bar': {'color': "#00E5FF"},
-                    'bgcolor': "#020617",
+                    'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': grid_color},
+                    'bar': {'color': line_main},
+                    'bgcolor': card_bg,
                     'borderwidth': 2,
-                    'bordercolor': "#334155",
+                    'bordercolor': card_border,
                     'steps': [
                         {'range': [0, bench_info['val']], 'color': "rgba(16, 185, 129, 0.15)"},
                         {'range': [bench_info['val'], bench_info['max_gauge']], 'color': "rgba(244, 63, 94, 0.2)"}],
@@ -239,7 +294,7 @@ with tab3:
                         'thickness': 0.75,
                         'value': bench_info['val']}}
             ))
-            fig_gauge.update_layout(template="plotly_dark", height=400, **custom_bg)
+            fig_gauge.update_layout(template=plotly_template, height=400, **custom_bg)
             st.plotly_chart(fig_gauge, use_container_width=True)
             
         with c_gauge2:
