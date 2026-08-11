@@ -50,7 +50,7 @@ components.html(
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
 
-@st.cache_data(ttl=60) # Cache diperbarui per 1 menit
+@st.cache_data(ttl=60)
 def load_data(url):
     df = pd.read_csv(url)
     df['Date_Time'] = pd.to_datetime(df['Tahun'].astype(str) + '-' + df['Bulan'].astype(str) + '-' + df['Tanggal'].astype(str) + ' ' + df['Jam'].astype(str) + ':00:00', errors='coerce') + pd.Timedelta(hours=8)
@@ -146,17 +146,23 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-def apply_chart_theme(fig, chart_title=""):
-    fig.update_layout(
-        title=dict(text=chart_title, font=dict(color=text_color, size=16)),
+def apply_chart_theme(fig, chart_title="", is_gauge=False):
+    layout_update = dict(
         paper_bgcolor=plotly_bg,
         plot_bgcolor=plotly_bg,
         font=dict(color=text_color, family="sans-serif"),
         legend=dict(font=dict(color=text_color)),
         hoverlabel=dict(bgcolor=hover_bg, font_color=hover_text, font_size=12)
     )
-    fig.update_xaxes(title_font=dict(color=text_color), tickfont=dict(color=text_color), gridcolor=grid_color, zerolinecolor=grid_color)
-    fig.update_yaxes(title_font=dict(color=text_color), tickfont=dict(color=text_color), gridcolor=grid_color, zerolinecolor=grid_color)
+    if chart_title:
+        layout_update["title"] = dict(text=chart_title, font=dict(color=text_color, size=16))
+        
+    fig.update_layout(**layout_update)
+    
+    if not is_gauge:
+        fig.update_xaxes(title_font=dict(color=text_color), tickfont=dict(color=text_color), gridcolor=grid_color, zerolinecolor=grid_color)
+        fig.update_yaxes(title_font=dict(color=text_color), tickfont=dict(color=text_color), gridcolor=grid_color, zerolinecolor=grid_color)
+        
     return fig
 
 # ------------------------------------------------------------------------------
@@ -269,7 +275,14 @@ with tab3:
                 value = mean_val,
                 domain = {'x': [0, 1], 'y': [0, 1]},
                 title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 20, 'color': text_color}},
-                delta = {'reference': bench_info['val'], 'increasing': {'color': "#F43F5E"}, 'decreasing': {'color': "#10B981"}},
+                number = {'font': {'size': 50, 'color': text_color}},
+                delta = {
+                    'reference': bench_info['val'], 
+                    'position': "bottom",  # <--- FIX: Memaksa delta tetap di bawah angka
+                    'font': {'size': 24},
+                    'increasing': {'color': "#F43F5E"}, 
+                    'decreasing': {'color': "#10B981"}
+                },
                 gauge = {
                     'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': text_color},
                     'bar': {'color': line_main},
@@ -284,8 +297,14 @@ with tab3:
                         'thickness': 0.75,
                         'value': bench_info['val']}}
             ))
-            fig_gauge.update_layout(template=plotly_template, height=400)
-            apply_chart_theme(fig_gauge)
+            
+            # FIX: Jarak Margin Bawah (b=60) agar delta & angka punya cukup ruang di tengah
+            fig_gauge.update_layout(
+                template=plotly_template, 
+                height=350, 
+                margin=dict(l=40, r=40, t=50, b=60)
+            )
+            apply_chart_theme(fig_gauge, is_gauge=True)
             st.plotly_chart(fig_gauge, use_container_width=True)
             
         with c_gauge2:
