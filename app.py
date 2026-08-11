@@ -89,7 +89,7 @@ GLOBAL_BENCHMARKS = {
 }
 
 # ------------------------------------------------------------------------------
-# 3. SIDEBAR NAVIGATION
+# 3. SIDEBAR NAVIGATION & FILTER PRESET TANGGAL
 # ------------------------------------------------------------------------------
 st.sidebar.image(BMKG_LOGO_URL, width=80)
 st.sidebar.title("GAW Lore Lindu Bariri")
@@ -110,12 +110,34 @@ selected_param = st.sidebar.selectbox("📊 Pilih Parameter:", available_params)
 min_date = df['Date_Time'].min().date()
 max_date = df['Date_Time'].max().date()
 
-start_date, end_date = st.sidebar.date_input(
-    "📅 Rentang Waktu (WITA):", 
-    [min_date, max_date], 
-    min_value=min_date, 
-    max_value=max_date
+# MENU OPSI RENTANG WAKTU (TERMASUK SEMUA TAHUN)
+st.sidebar.markdown("### 📅 Rentang Waktu (WITA)")
+preset_range = st.sidebar.selectbox(
+    "Pilihan Rentang Data:",
+    ["Semua Tahun (Full Data)", "1 Tahun Terakhir", "6 Bulan Terakhir", "1 Bulan Terakhir", "Custom Tanggal"]
 )
+
+if preset_range == "Semua Tahun (Full Data)":
+    start_date, end_date = min_date, max_date
+elif preset_range == "1 Tahun Terakhir":
+    start_date, end_date = max_date - pd.Timedelta(days=365), max_date
+elif preset_range == "6 Bulan Terakhir":
+    start_date, end_date = max_date - pd.Timedelta(days=180), max_date
+elif preset_range == "1 Bulan Terakhir":
+    start_date, end_date = max_date - pd.Timedelta(days=30), max_date
+else:
+    date_selection = st.sidebar.date_input(
+        "Pilih Tanggal Mulai & Selesai:",
+        [min_date, max_date],
+        min_value=min_date,
+        max_value=max_date
+    )
+    if isinstance(date_selection, (list, tuple)) and len(date_selection) == 2:
+        start_date, end_date = date_selection
+    else:
+        start_date, end_date = min_date, max_date
+
+st.sidebar.caption(f"Periode Aktif: **{start_date}** s/d **{end_date}**")
 
 show_trend = st.sidebar.checkbox("📈 Tampilkan Garis Tren Linear", value=True)
 apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
@@ -176,7 +198,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     fig = go.Figure()
 
-    # 1. Plot Data Utama (Raw / Moving Average)
     fig.add_trace(go.Scatter(
         x=df_filtered["Date_Time"],
         y=df_filtered[f'{selected_param}_plot'],
@@ -185,7 +206,6 @@ with tab1:
         line=dict(color='#00d2ff', width=1.5)
     ))
 
-    # 2. Hitung & Plot Garis Tren Linear (Regresi)
     df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
@@ -202,7 +222,6 @@ with tab1:
             line=dict(color='#ff007f', width=2.5, dash='dash')
         ))
 
-    # 3. Garis Acuan Global
     if has_benchmark:
         fig.add_hline(
             y=GLOBAL_BENCHMARKS[selected_param]["val"], 
