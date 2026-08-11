@@ -12,6 +12,7 @@ BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 # ------------------------------------------------------------------------------
 st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, layout="wide", initial_sidebar_state="expanded")
 
+# INJEKSI JS & CSS FIX SIDEBAR BUTTON DI HP
 components.html(
     """<script>
     const doc = window.parent.document;
@@ -26,12 +27,30 @@ components.html(
 
     const style = doc.createElement('style');
     style.innerHTML = `
+        /* Sembunyikan elemen admin/footer tapi TETAP TAMPILKAN tombol sidebar */
         [data-testid="stStatusWidget"],
         [data-testid="manage-app-button"],
         .stAppViewer,
         footer,
-        #MainMenu,
-        header { display: none !important; visibility: hidden !important; }
+        #MainMenu { display: none !important; visibility: hidden !important; }
+
+        /* Buat tombol buka sidebar (panah >) muncul jelas di HP */
+        [data-testid="collapsedControl"] {
+            display: flex !important;
+            visibility: visible !important;
+            z-index: 999999 !important;
+            top: 12px !important;
+            left: 12px !important;
+            background-color: #1E293B !important;
+            border-radius: 8px !important;
+            border: 1px solid #334155 !important;
+            padding: 4px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+        }
+        [data-testid="collapsedControl"] svg {
+            fill: #38BDF8 !important;
+            color: #38BDF8 !important;
+        }
     `;
     doc.head.appendChild(style);
 
@@ -125,6 +144,9 @@ st.markdown(f"""
     .stApp, .main {{ background-color: {bg_main} !important; }}
     [data-testid="stSidebar"] {{ background-color: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
     
+    /* Header transparan agar tidak menutupi tombol */
+    header[data-testid="stHeader"] {{ background: transparent !important; }}
+    
     .stMetric {{ 
         background-color: {card_bg} !important; 
         padding: 15px; 
@@ -140,9 +162,6 @@ st.markdown(f"""
         color: {text_color} !important;
         -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
     }}
-    
-    #MainMenu, footer, header {{ visibility: hidden !important; display: none !important; }}
-    [data-testid="stStatusWidget"] {{ display: none !important; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -278,7 +297,7 @@ with tab3:
                 number = {'font': {'size': 50, 'color': text_color}},
                 delta = {
                     'reference': bench_info['val'], 
-                    'position': "bottom",  # <--- FIX: Memaksa delta tetap di bawah angka
+                    'position': "bottom",
                     'font': {'size': 24},
                     'increasing': {'color': "#F43F5E"}, 
                     'decreasing': {'color': "#10B981"}
@@ -298,7 +317,6 @@ with tab3:
                         'value': bench_info['val']}}
             ))
             
-            # FIX: Jarak Margin Bawah (b=60) agar delta & angka punya cukup ruang di tengah
             fig_gauge.update_layout(
                 template=plotly_template, 
                 height=350, 
