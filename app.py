@@ -6,8 +6,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
-# URL Gambar Suasana Hutan Hujan Tropis (Lore Lindu Vibe)
-FOREST_BG_URL = "https://images.unsplash.com/photo-1511497584788-8767611136f6?q=80&w=1920"
+# URL Gambar Suasana Hutan Hujan Tropis
+FOREST_BG_URL = "https://images.unsplash.com/photo-1511497584788-8767611136f6?w=1920&q=80"
 
 # ------------------------------------------------------------------------------
 # 1. KONFIGURASI HALAMAN
@@ -82,10 +82,10 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. DYNAMIC SKEMA WARNA & SAMAR BACKGROUND OVERLAY
+# 4. SKEMA WARNA DUAL TEMA & BACKGROUND FIX
 # ------------------------------------------------------------------------------
 if light_mode:
-    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.91), rgba(248, 250, 252, 0.91)), url('{FOREST_BG_URL}')"
+    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.82), rgba(248, 250, 252, 0.82)), url('{FOREST_BG_URL}')"
     bg_sidebar = "rgba(241, 245, 249, 0.92)"
     card_bg = "rgba(255, 255, 255, 0.88)"
     card_border = "#E2E8F0"
@@ -95,7 +95,7 @@ if light_mode:
     plotly_template = "plotly_white"
     line_main = "#0284C7"
     line_trend = "#EF4444"
-    plotly_bg = "rgba(255, 255, 255, 0.0)"
+    plotly_bg = "rgba(0,0,0,0)"
     hover_bg, hover_text = "#FFFFFF", "#0F172A"
     glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.08)"
     
@@ -112,7 +112,7 @@ if light_mode:
     input_border = "#CBD5E1"
     input_text = "#0F172A"
 else:
-    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.89), rgba(7, 10, 19, 0.89)), url('{FOREST_BG_URL}')"
+    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.72), rgba(7, 10, 19, 0.72)), url('{FOREST_BG_URL}')"
     bg_sidebar = "rgba(3, 7, 18, 0.92)"
     card_bg = "rgba(15, 23, 42, 0.78)"
     card_border = "rgba(56, 189, 248, 0.2)"
@@ -122,7 +122,7 @@ else:
     plotly_template = "plotly_dark"
     line_main = "#00F2FE"
     line_trend = "#FF2A6D"
-    plotly_bg = "rgba(0, 0, 0, 0.0)"
+    plotly_bg = "rgba(0,0,0,0)"
     hover_bg, hover_text = "#0F172A", "#F8FAFC"
     glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
     
@@ -141,19 +141,23 @@ else:
 
 st.markdown(f"""
     <style>
-    /* Background Utama dengan Efek Samar Hutan Lore Lindu */
-    .stApp, .main {{ 
+    /* Injeksi Background ke App Container Utama Streamlit */
+    [data-testid="stAppViewContainer"] {{
         background-image: {bg_overlay} !important;
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
     }}
+
+    .stApp, .main, [data-testid="stHeader"] {{
+        background: transparent !important;
+    }}
     
     [data-testid="stSidebar"] {{ 
         background: {bg_sidebar} !important; 
         border-right: 1px solid {card_border}; 
-        backdrop-filter: blur(12px) !important;
+        backdrop-filter: blur(14px) !important;
     }}
 
     /* Metric Cards Styling */
