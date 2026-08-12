@@ -6,8 +6,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
-# Gambar Hutan Hujan Tropis / Pegunungan Mistis (Lore Lindu Vibe)
-FOREST_BG_URL = "https://images.unsplash.com/photo-1511497584788-8767611136f6?w=1920&q=80"
+# Gambar Suasana Hutan Hujan Tropis / Lore Lindu
+FOREST_BG_URL = "https://images.unsplash.com/photo-1511497584788-8767611136f6?auto=format&fit=crop&w=1920&q=80"
 
 # ------------------------------------------------------------------------------
 # 1. KONFIGURASI HALAMAN
@@ -82,11 +82,11 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA & INJEKSI BACKGROUND GAMBAR HUTAN (TRANSPARENT CONTAINER)
+# 4. TEMA WARNA & CSS OVERRIDE (BACKGROUND & SIDEBAR BUTTON HP)
 # ------------------------------------------------------------------------------
 if light_mode:
-    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.78), rgba(248, 250, 252, 0.78)), url('{FOREST_BG_URL}')"
-    bg_sidebar = "rgba(241, 245, 249, 0.90)"
+    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.80), rgba(248, 250, 252, 0.80)), url('{FOREST_BG_URL}')"
+    bg_sidebar = "rgba(241, 245, 249, 0.95)"
     card_bg = "rgba(255, 255, 255, 0.88)"
     card_border = "#E2E8F0"
     text_color = "#0F172A"
@@ -112,9 +112,9 @@ if light_mode:
     input_border = "#CBD5E1"
     input_text = "#0F172A"
 else:
-    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.58), rgba(7, 10, 19, 0.58)), url('{FOREST_BG_URL}')"
-    bg_sidebar = "rgba(3, 7, 18, 0.90)"
-    card_bg = "rgba(15, 23, 42, 0.82)"
+    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.55), rgba(7, 10, 19, 0.55)), url('{FOREST_BG_URL}')"
+    bg_sidebar = "rgba(3, 7, 18, 0.95)"
+    card_bg = "rgba(15, 23, 42, 0.80)"
     card_border = "rgba(56, 189, 248, 0.25)"
     text_color = "#F8FAFC"
     text_sub = "#38BDF8"
@@ -141,8 +141,8 @@ else:
 
 st.markdown(f"""
     <style>
-    /* Pasang Background Gambar pada .stApp Utama */
-    .stApp {{
+    /* 1. BACKGROUND GAMBAR HUTAN PADA SELURUH LAYAR */
+    .stApp, [data-testid="stAppViewContainer"] {{
         background-image: {bg_overlay} !important;
         background-size: cover !important;
         background-position: center !important;
@@ -150,22 +150,45 @@ st.markdown(f"""
         background-attachment: fixed !important;
     }}
 
-    /* Buat Seluruh Container Internal Menjadi Transparan Agar Gambar Terlihat */
-    [data-testid="stAppViewContainer"], 
-    [data-testid="stHeader"], 
-    section.main, 
-    .block-container {{
+    /* 2. TRANSPARANSI CONTAINER UTAMA */
+    section.main, .block-container, [data-testid="stVerticalBlock"] {{
         background: transparent !important;
         background-color: transparent !important;
     }}
-    
+
+    /* 3. SIDEBAR STYLING */
     [data-testid="stSidebar"] {{ 
         background: {bg_sidebar} !important; 
         border-right: 1px solid {card_border}; 
-        backdrop-filter: blur(14px) !important;
+        backdrop-filter: blur(16px) !important;
     }}
 
-    /* Metric Cards Glassmorphism */
+    /* 4. HEADER & TOMBOL SIDEBAR PADA HP (WAJIB MUNCUL DI KIRI ATAS) */
+    header[data-testid="stHeader"] {{
+        background: transparent !important;
+        z-index: 99999 !important;
+    }}
+    
+    /* Tombol Panah Buka Sidebar di HP */
+    [data-testid="collapsedControl"], 
+    button[data-testid="stHeaderIconButton"] {{
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: rgba(15, 23, 42, 0.85) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(56, 189, 248, 0.5) !important;
+        border-radius: 10px !important;
+        padding: 6px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    }}
+    [data-testid="collapsedControl"] svg, 
+    button[data-testid="stHeaderIconButton"] svg {{
+        fill: #38BDF8 !important;
+        color: #38BDF8 !important;
+    }}
+
+    /* 5. METRIC CARDS GLASSMORPHISM */
     .stMetric {{ 
         background: {card_bg} !important; 
         border: 1px solid {card_border} !important; 
@@ -177,18 +200,15 @@ st.markdown(f"""
     .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
     .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; }}
 
-    /* Dynamic Selectbox & Input Dropdowns */
+    /* 6. SELECTBOX & RADIO SIDEBAR */
     div[data-baseweb="select"] > div {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
         color: {input_text} !important;
         border-radius: 10px !important;
     }}
-    div[data-baseweb="select"] span {{
-        color: {input_text} !important;
-    }}
+    div[data-baseweb="select"] span {{ color: {input_text} !important; }}
     
-    /* Sidebar Radio Buttons */
     [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-baseweb="radio"] {{
         background: {input_bg} !important;
         border: 1px solid {input_border} !important;
@@ -197,7 +217,7 @@ st.markdown(f"""
         margin-bottom: 4px !important;
     }}
 
-    /* Nav-Dock Glassmorphism Styling */
+    /* 7. NAV-DOCK STYLING */
     div[data-testid="stRadio"] > div[role="radiogroup"] {{
         display: flex !important;
         flex-direction: row !important;
@@ -205,7 +225,6 @@ st.markdown(f"""
         gap: 10px !important;
         background: {dock_bg} !important;
         backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
         padding: 8px 14px !important;
         border-radius: 40px !important;
         border: 1px solid {dock_border} !important;
@@ -213,39 +232,30 @@ st.markdown(f"""
         margin-bottom: 25px !important;
         width: fit-content !important;
     }}
-
-    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{
-        display: none !important;
-    }}
-
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{ display: none !important; }}
     div[data-testid="stRadio"] label[data-baseweb="radio"] {{
         background: {dock_item_bg} !important;
         border: 1px solid {dock_item_border} !important;
         padding: 8px 20px !important;
         border-radius: 30px !important;
-        cursor: pointer !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         margin: 0 !important;
     }}
-
     div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {{
         color: {dock_text} !important;
         font-weight: 600 !important;
         font-size: 0.9rem !important;
         margin: 0 !important;
     }}
-
     div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {{
         background: {dock_active_bg} !important;
         border: 1px solid {dock_active_border} !important;
-        backdrop-filter: blur(12px) !important;
     }}
     div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div[data-testid="stMarkdownContainer"] p {{
         color: {dock_active_text} !important;
         font-weight: 700 !important;
     }}
 
-    /* Status Badge */
+    /* 8. STATUS BADGE */
     .status-badge {{
         display: inline-flex;
         align-items: center;
@@ -281,7 +291,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 5. JS LOCK TITLE & SIDEBAR MOBILE BUTTON
+# 5. JS LOCK TITLE & SEMBUNYIKAN ELEMEN BAWAAN ADMIN
 # ------------------------------------------------------------------------------
 components.html(
     """<script>
@@ -297,26 +307,12 @@ components.html(
 
     const style = doc.createElement('style');
     style.innerHTML = `
+        /* Sembunyikan hanya widget admin & footer, biarkan header collapse button tetap ada */
         [data-testid="stStatusWidget"],
         [data-testid="manage-app-button"],
         .stAppViewer,
         footer,
-        #MainMenu,
-        header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
-
-        [data-testid="collapsedControl"] {
-            display: flex !important;
-            visibility: visible !important;
-            z-index: 999999 !important;
-            top: 14px !important;
-            left: 14px !important;
-            background: rgba(15, 23, 42, 0.8) !important;
-            backdrop-filter: blur(10px) !important;
-            border-radius: 10px !important;
-            border: 1px solid rgba(56, 189, 248, 0.3) !important;
-            padding: 6px !important;
-        }
-        [data-testid="collapsedControl"] svg { fill: #38BDF8 !important; color: #38BDF8 !important; }
+        #MainMenu { display: none !important; visibility: hidden !important; }
     `;
     doc.head.appendChild(style);
 
