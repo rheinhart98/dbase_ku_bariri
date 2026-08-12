@@ -17,11 +17,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# INJEKSI JS FIX TITLE & SIDEBAR MOBILE
+# INJEKSI CSS LANGSUNG KE HEAD DOKUMEN UTAMA (MEMATIKAN GARIS MERAH BAWAAN)
 components.html(
     """<script>
     const doc = window.parent.document;
     
+    // Lock Title Browser
     function lockTitle() {
         if (doc.title !== "GAW Lore Lindu Bariri") {
             doc.title = "GAW Lore Lindu Bariri";
@@ -30,37 +31,95 @@ components.html(
     lockTitle();
     setInterval(lockTitle, 300);
 
-    const style = doc.createElement('style');
-    style.innerHTML = `
-        [data-testid="stStatusWidget"],
-        [data-testid="manage-app-button"],
-        .stAppViewer,
-        footer,
-        #MainMenu,
-        header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
+    // Injeksi Style Kapsul Translucent ke Parent Head
+    const styleId = "custom-pill-tabs-style";
+    let existingStyle = doc.getElementById(styleId);
+    if (!existingStyle) {
+        const style = doc.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+            /* 1. MATIKAN GARIS MERAH BAWAAN STREAMLIT */
+            div[data-baseweb="tab-highlight"],
+            div[data-baseweb="tab-border"],
+            [data-testid="stTabs"] [data-baseweb="tab-highlight"],
+            [data-testid="stTabs"] [data-baseweb="tab-border"] {
+                display: none !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+                height: 0px !important;
+            }
 
-        [data-testid="collapsedControl"] {
-            display: flex !important;
-            visibility: visible !important;
-            z-index: 999999 !important;
-            top: 14px !important;
-            left: 14px !important;
-            background: rgba(15, 23, 42, 0.8) !important;
-            backdrop-filter: blur(10px) !important;
-            border-radius: 10px !important;
-            border: 1px solid rgba(56, 189, 248, 0.3) !important;
-            padding: 6px !important;
-        }
-        [data-testid="collapsedControl"] svg { fill: #38BDF8 !important; color: #38BDF8 !important; }
-    `;
-    doc.head.appendChild(style);
+            /* 2. ATUR WADAH TAB MENJADI TRANSPARAN */
+            [data-testid="stTabs"] div[data-baseweb="tab-list"] {
+                gap: 10px !important;
+                background: transparent !important;
+                border-bottom: none !important;
+                padding: 6px 0px !important;
+            }
 
-    doc.addEventListener('contextmenu', event => event.preventDefault());
-    doc.addEventListener('keydown', function(e) {
-        if(e.keyCode == 123) { e.preventDefault(); return false; }
-        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) { e.preventDefault(); return false; }
-        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
-    });
+            /* 3. TAMPILAN TAB INAKTIF (KAPSUL REDUP) */
+            [data-testid="stTabs"] button[role="tab"] {
+                border-radius: 25px !important;
+                padding: 8px 20px !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                color: #94A3B8 !important;
+                font-weight: 600 !important;
+                height: auto !important;
+                transition: all 0.3s ease !important;
+            }
+
+            /* Force Warna Teks Dalam Tab Inaktif */
+            [data-testid="stTabs"] button[role="tab"] * {
+                color: #94A3B8 !important;
+            }
+
+            /* 4. HOVER TAB */
+            [data-testid="stTabs"] button[role="tab"]:hover {
+                background: rgba(56, 189, 248, 0.15) !important;
+                border-color: rgba(56, 189, 248, 0.4) !important;
+            }
+            [data-testid="stTabs"] button[role="tab"]:hover * {
+                color: #38BDF8 !important;
+            }
+
+            /* 5. TAMPILAN TAB AKTIF (KAPSUL TRANSLUCENT GLOW) */
+            [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+                background: rgba(56, 189, 248, 0.2) !important;
+                border: 1px solid rgba(56, 189, 248, 0.6) !important;
+                box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25) !important;
+                backdrop-filter: blur(8px) !important;
+            }
+            [data-testid="stTabs"] button[role="tab"][aria-selected="true"] * {
+                color: #38BDF8 !important;
+                font-weight: 700 !important;
+            }
+
+            /* Sembunyikan elemen admin & footer */
+            [data-testid="stStatusWidget"],
+            [data-testid="manage-app-button"],
+            .stAppViewer,
+            footer,
+            #MainMenu,
+            header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
+
+            /* Tombol Sidebar HP */
+            [data-testid="collapsedControl"] {
+                display: flex !important;
+                visibility: visible !important;
+                z-index: 999999 !important;
+                top: 14px !important;
+                left: 14px !important;
+                background: rgba(15, 23, 42, 0.8) !important;
+                backdrop-filter: blur(10px) !important;
+                border-radius: 10px !important;
+                border: 1px solid rgba(56, 189, 248, 0.3) !important;
+                padding: 6px !important;
+            }
+            [data-testid="collapsedControl"] svg { fill: #38BDF8 !important; color: #38BDF8 !important; }
+        `;
+        doc.head.appendChild(style);
+    }
     </script>""", height=0, width=0
 )
 
@@ -127,7 +186,7 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA & HIGH SPECIFICITY TAB CSS
+# 4. SKEMA WARNA DUAL TEMA
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_main = "#F1F5F9"
@@ -143,9 +202,6 @@ if light_mode:
     plotly_bg = "#FFFFFF"
     hover_bg, hover_text = "#FFFFFF", "#0F172A"
     glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.12)"
-    tab_active_bg = "rgba(2, 132, 199, 0.18)"
-    tab_active_border = "rgba(2, 132, 199, 0.5)"
-    tab_active_text = "#0284C7"
 else:
     bg_main = "#070A13"
     bg_sidebar = "#030712"
@@ -160,23 +216,12 @@ else:
     plotly_bg = "#070A13"
     hover_bg, hover_text = "#0F172A", "#F8FAFC"
     glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
-    tab_active_bg = "rgba(56, 189, 248, 0.22)"
-    tab_active_border = "rgba(56, 189, 248, 0.65)"
-    tab_active_text = "#38BDF8"
 
 st.markdown(f"""
     <style>
-    /* Background Utama */
-    .stApp, .main {{ 
-        background: {bg_main} !important; 
-    }}
-    
-    [data-testid="stSidebar"] {{ 
-        background: {bg_sidebar} !important; 
-        border-right: 1px solid {card_border}; 
-    }}
+    .stApp, .main {{ background: {bg_main} !important; }}
+    [data-testid="stSidebar"] {{ background: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
 
-    /* Metric Cards Glassmorphism */
     .stMetric {{ 
         background: {card_bg} !important; 
         backdrop-filter: blur(12px) !important;
@@ -193,7 +238,6 @@ st.markdown(f"""
     .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.78rem !important; }}
     .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; font-size: 1.8rem !important; }}
 
-    /* Status Badge */
     .status-badge {{
         display: inline-flex;
         align-items: center;
@@ -219,69 +263,6 @@ st.markdown(f"""
         0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }}
         70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }}
         100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
-    }}
-
-    /* ------------------------------------------------------------------------- */
-    /* ULTRA-HIGH SPECIFICITY OVERRIDE UNTUK TAB STREAMLIT                      */
-    /* ------------------------------------------------------------------------- */
-    /* 1. Hilangkan Garis Merah/Pink Underline Bawaan */
-    div[data-baseweb="tab-highlight"],
-    div[data-baseweb="tab-border"],
-    [data-testid="stTabs"] [data-baseweb="tab-border"],
-    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        height: 0px !important;
-    }}
-
-    /* 2. Container Tab List */
-    [data-testid="stTabs"] [data-baseweb="tab-list"] {{
-        gap: 12px !important;
-        background-color: transparent !important;
-        border-bottom: none !important;
-        padding: 8px 0px !important;
-    }}
-
-    /* 3. Tombol Tab Inaktif (Pill Normal) */
-    [data-testid="stTabs"] button[role="tab"] {{
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 30px !important;
-        padding: 8px 24px !important;
-        color: #94A3B8 !important;
-        font-weight: 600 !important;
-        height: auto !important;
-        box-shadow: none !important;
-    }}
-
-    /* Target Teks Paragraf di dalam Tab Inaktif */
-    [data-testid="stTabs"] button[role="tab"] p {{
-        color: #94A3B8 !important;
-        font-weight: 600 !important;
-        font-size: 0.92rem !important;
-        margin: 0 !important;
-    }}
-
-    /* 4. Tab Hover State */
-    [data-testid="stTabs"] button[role="tab"]:hover {{
-        background: {tab_active_bg} !important;
-        border-color: {tab_active_border} !important;
-    }}
-    [data-testid="stTabs"] button[role="tab"]:hover p {{
-        color: {tab_active_text} !important;
-    }}
-
-    /* 5. Tab Aktif (Selected Translucent Pill) */
-    [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {{
-        background: {tab_active_bg} !important;
-        border: 1px solid {tab_active_border} !important;
-        box-shadow: 0 4px 20px {tab_active_bg} !important;
-        backdrop-filter: blur(8px) !important;
-    }}
-    [data-testid="stTabs"] button[role="tab"][aria-selected="true"] p {{
-        color: {tab_active_text} !important;
-        font-weight: 700 !important;
     }}
 
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
