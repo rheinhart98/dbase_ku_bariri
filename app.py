@@ -17,12 +17,120 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# INJEKSI CSS LANGSUNG KE HEAD DOKUMEN UTAMA (MEMATIKAN GARIS MERAH BAWAAN)
+# ------------------------------------------------------------------------------
+# 2. INJEKSI CSS UTAMA: KAPSUL TRANSLUCENT & MENGHILANGKAN GARIS MERAH
+# ------------------------------------------------------------------------------
+st.markdown("""
+    <style>
+    /* ==========================================================================
+       OVERRIDE TAB STREAMLIT (BASED ON BASEWEB UI SELECTORS)
+       ========================================================================== */
+    /* 1. Hapus Garis Merah/Pink Underline Bawaan */
+    div[data-baseweb="tab-highlight"],
+    div[data-baseweb="tab-border"],
+    [data-testid="stTabs"] div[data-baseweb="tab-highlight"],
+    [data-testid="stTabs"] div[data-baseweb="tab-border"] {
+        display: none !important;
+        height: 0px !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+
+    /* 2. Format Container Tab List */
+    [data-testid="stTabs"] div[data-baseweb="tab-list"] {
+        gap: 12px !important;
+        background-color: transparent !important;
+        border-bottom: none !important;
+        padding: 6px 0px !important;
+    }
+
+    /* 3. Desain Kapsul Tab Inaktif */
+    [data-testid="stTabs"] button[data-baseweb="tab"] {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 30px !important;
+        padding: 8px 22px !important;
+        height: auto !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: none !important;
+    }
+
+    /* 4. Warna Teks Paragraf di Dalam Tab Inaktif */
+    [data-testid="stTabs"] button[data-baseweb="tab"] p,
+    [data-testid="stTabs"] button[data-baseweb="tab"] span {
+        color: #94A3B8 !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        margin: 0 !important;
+    }
+
+    /* 5. State Hover Tab */
+    [data-testid="stTabs"] button[data-baseweb="tab"]:hover {
+        background: rgba(56, 189, 248, 0.15) !important;
+        border-color: rgba(56, 189, 248, 0.4) !important;
+    }
+    [data-testid="stTabs"] button[data-baseweb="tab"]:hover p {
+        color: #38BDF8 !important;
+    }
+
+    /* 6. State Tab Aktif (Translucent Glow Pill) */
+    [data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+        background: rgba(56, 189, 248, 0.22) !important;
+        border: 1px solid rgba(56, 189, 248, 0.65) !important;
+        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    [data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p {
+        color: #38BDF8 !important;
+        font-weight: 700 !important;
+    }
+
+    /* ==========================================================================
+       METRIC CARDS & GENERAL UI
+       ========================================================================== */
+    .stMetric { 
+        backdrop-filter: blur(12px) !important;
+        padding: 18px 20px; 
+        border-radius: 16px !important; 
+        transition: all 0.3s ease !important;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10B981;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #10B981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ------------------------------------------------------------------------------
+# 3. JS LOCK TITLE & SIDEBAR MOBILE BUTTON
+# ------------------------------------------------------------------------------
 components.html(
     """<script>
     const doc = window.parent.document;
     
-    // Lock Title Browser
     function lockTitle() {
         if (doc.title !== "GAW Lore Lindu Bariri") {
             doc.title = "GAW Lore Lindu Bariri";
@@ -31,100 +139,42 @@ components.html(
     lockTitle();
     setInterval(lockTitle, 300);
 
-    // Injeksi Style Kapsul Translucent ke Parent Head
-    const styleId = "custom-pill-tabs-style";
-    let existingStyle = doc.getElementById(styleId);
-    if (!existingStyle) {
-        const style = doc.createElement('style');
-        style.id = styleId;
-        style.innerHTML = `
-            /* 1. MATIKAN GARIS MERAH BAWAAN STREAMLIT */
-            div[data-baseweb="tab-highlight"],
-            div[data-baseweb="tab-border"],
-            [data-testid="stTabs"] [data-baseweb="tab-highlight"],
-            [data-testid="stTabs"] [data-baseweb="tab-border"] {
-                display: none !important;
-                opacity: 0 !important;
-                visibility: hidden !important;
-                height: 0px !important;
-            }
+    const style = doc.createElement('style');
+    style.innerHTML = `
+        [data-testid="stStatusWidget"],
+        [data-testid="manage-app-button"],
+        .stAppViewer,
+        footer,
+        #MainMenu,
+        header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
 
-            /* 2. ATUR WADAH TAB MENJADI TRANSPARAN */
-            [data-testid="stTabs"] div[data-baseweb="tab-list"] {
-                gap: 10px !important;
-                background: transparent !important;
-                border-bottom: none !important;
-                padding: 6px 0px !important;
-            }
+        [data-testid="collapsedControl"] {
+            display: flex !important;
+            visibility: visible !important;
+            z-index: 999999 !important;
+            top: 14px !important;
+            left: 14px !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+            backdrop-filter: blur(10px) !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            padding: 6px !important;
+        }
+        [data-testid="collapsedControl"] svg { fill: #38BDF8 !important; color: #38BDF8 !important; }
+    `;
+    doc.head.appendChild(style);
 
-            /* 3. TAMPILAN TAB INAKTIF (KAPSUL REDUP) */
-            [data-testid="stTabs"] button[role="tab"] {
-                border-radius: 25px !important;
-                padding: 8px 20px !important;
-                background: rgba(255, 255, 255, 0.05) !important;
-                border: 1px solid rgba(255, 255, 255, 0.12) !important;
-                color: #94A3B8 !important;
-                font-weight: 600 !important;
-                height: auto !important;
-                transition: all 0.3s ease !important;
-            }
-
-            /* Force Warna Teks Dalam Tab Inaktif */
-            [data-testid="stTabs"] button[role="tab"] * {
-                color: #94A3B8 !important;
-            }
-
-            /* 4. HOVER TAB */
-            [data-testid="stTabs"] button[role="tab"]:hover {
-                background: rgba(56, 189, 248, 0.15) !important;
-                border-color: rgba(56, 189, 248, 0.4) !important;
-            }
-            [data-testid="stTabs"] button[role="tab"]:hover * {
-                color: #38BDF8 !important;
-            }
-
-            /* 5. TAMPILAN TAB AKTIF (KAPSUL TRANSLUCENT GLOW) */
-            [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
-                background: rgba(56, 189, 248, 0.2) !important;
-                border: 1px solid rgba(56, 189, 248, 0.6) !important;
-                box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25) !important;
-                backdrop-filter: blur(8px) !important;
-            }
-            [data-testid="stTabs"] button[role="tab"][aria-selected="true"] * {
-                color: #38BDF8 !important;
-                font-weight: 700 !important;
-            }
-
-            /* Sembunyikan elemen admin & footer */
-            [data-testid="stStatusWidget"],
-            [data-testid="manage-app-button"],
-            .stAppViewer,
-            footer,
-            #MainMenu,
-            header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
-
-            /* Tombol Sidebar HP */
-            [data-testid="collapsedControl"] {
-                display: flex !important;
-                visibility: visible !important;
-                z-index: 999999 !important;
-                top: 14px !important;
-                left: 14px !important;
-                background: rgba(15, 23, 42, 0.8) !important;
-                backdrop-filter: blur(10px) !important;
-                border-radius: 10px !important;
-                border: 1px solid rgba(56, 189, 248, 0.3) !important;
-                padding: 6px !important;
-            }
-            [data-testid="collapsedControl"] svg { fill: #38BDF8 !important; color: #38BDF8 !important; }
-        `;
-        doc.head.appendChild(style);
-    }
+    doc.addEventListener('contextmenu', event => event.preventDefault());
+    doc.addEventListener('keydown', function(e) {
+        if(e.keyCode == 123) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 67 || e.keyCode == 74)) { e.preventDefault(); return false; }
+        if(e.ctrlKey && e.keyCode == 85) { e.preventDefault(); return false; }
+    });
     </script>""", height=0, width=0
 )
 
 # ------------------------------------------------------------------------------
-# 2. LOAD DATA DARI GITHUB
+# 4. LOAD DATA DARI GITHUB
 # ------------------------------------------------------------------------------
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
@@ -149,7 +199,7 @@ GLOBAL_BENCHMARKS = {
 }
 
 # ------------------------------------------------------------------------------
-# 3. SIDEBAR NAVIGATION
+# 5. SIDEBAR NAVIGATION
 # ------------------------------------------------------------------------------
 st.sidebar.image(BMKG_LOGO_URL, width=85)
 st.sidebar.title("GAW Lore Lindu Bariri")
@@ -186,7 +236,7 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA
+# 6. DYNAMIC DUAL THEME DYNAMICS
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_main = "#F1F5F9"
@@ -224,46 +274,11 @@ st.markdown(f"""
 
     .stMetric {{ 
         background: {card_bg} !important; 
-        backdrop-filter: blur(12px) !important;
-        padding: 18px 20px; 
-        border-radius: 16px !important; 
         border: 1px solid {card_border} !important; 
         box-shadow: {glow_shadow};
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }}
-    .stMetric:hover {{
-        transform: translateY(-4px) scale(1.01);
-        border-color: {text_sub} !important;
-    }}
-    .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.78rem !important; }}
-    .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; font-size: 1.8rem !important; }}
-
-    .status-badge {{
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(16, 185, 129, 0.12);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        color: #10B981;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }}
-    .pulse-dot {{
-        width: 8px;
-        height: 8px;
-        background-color: #10B981;
-        border-radius: 50%;
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-        animation: pulse 1.6s infinite;
-    }}
-    @keyframes pulse {{
-        0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }}
-        70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }}
-        100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
-    }}
+    .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
+    .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; }}
 
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
         color: {text_color} !important;
@@ -292,7 +307,7 @@ def apply_chart_theme(fig, chart_title="", is_gauge=False):
     return fig
 
 # ------------------------------------------------------------------------------
-# 5. FILTERING DATA & METRICS
+# 7. FILTERING DATA & METRICS
 # ------------------------------------------------------------------------------
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
@@ -332,7 +347,7 @@ else:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 6. TABS INTERFACE
+# 8. TABS INTERFACE
 # ------------------------------------------------------------------------------
 tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"])
 
