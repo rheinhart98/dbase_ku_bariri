@@ -6,8 +6,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
-# Gambar Suasana Hutan Hujan Tropis / Lore Lindu
-FOREST_BG_URL = "https://images.unsplash.com/photo-1511497584788-8767611136f6?auto=format&fit=crop&w=1920&q=80"
 
 # ------------------------------------------------------------------------------
 # 1. KONFIGURASI HALAMAN
@@ -82,16 +80,21 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. TEMA WARNA & CSS OVERRIDE (BACKGROUND & SIDEBAR BUTTON HP)
+# 4. SKEMA WARNA DUAL TEMA & FUTURISTIC MESH GRADIENT BACKGROUND
 # ------------------------------------------------------------------------------
 if light_mode:
-    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.80), rgba(248, 250, 252, 0.80)), url('{FOREST_BG_URL}')"
-    bg_sidebar = "rgba(241, 245, 249, 0.95)"
-    card_bg = "rgba(255, 255, 255, 0.88)"
+    # Light Holographic Gradient (Soft Sky + Electric Blue Glow Orbs)
+    bg_gradient = """
+        radial-gradient(circle at 12% 15%, rgba(56, 189, 248, 0.22), transparent 40%),
+        radial-gradient(circle at 88% 85%, rgba(129, 140, 248, 0.18), transparent 45%),
+        linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)
+    """
+    bg_sidebar = "rgba(241, 245, 249, 0.92)"
+    card_bg = "rgba(255, 255, 255, 0.82)"
     card_border = "#E2E8F0"
     text_color = "#0F172A"
     text_sub = "#0284C7"
-    grid_color = "#E2E8F0"
+    grid_color = "#CBD5E1"
     plotly_template = "plotly_white"
     line_main = "#0284C7"
     line_trend = "#EF4444"
@@ -99,9 +102,9 @@ if light_mode:
     hover_bg, hover_text = "#FFFFFF", "#0F172A"
     glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.08)"
     
-    dock_bg = "rgba(241, 245, 249, 0.88)"
+    dock_bg = "rgba(241, 245, 249, 0.85)"
     dock_border = "rgba(2, 132, 199, 0.3)"
-    dock_item_bg = "rgba(255, 255, 255, 0.8)"
+    dock_item_bg = "rgba(255, 255, 255, 0.85)"
     dock_item_border = "rgba(203, 213, 225, 0.8)"
     dock_text = "#475569"
     dock_active_bg = "rgba(2, 132, 199, 0.18)"
@@ -112,10 +115,15 @@ if light_mode:
     input_border = "#CBD5E1"
     input_text = "#0F172A"
 else:
-    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.55), rgba(7, 10, 19, 0.55)), url('{FOREST_BG_URL}')"
-    bg_sidebar = "rgba(3, 7, 18, 0.95)"
-    card_bg = "rgba(15, 23, 42, 0.80)"
-    card_border = "rgba(56, 189, 248, 0.25)"
+    # Deep Cyberpunk Space Gradient (Cyan & Deep Violet Glow Orbs)
+    bg_gradient = """
+        radial-gradient(circle at 15% 18%, rgba(0, 242, 254, 0.14), transparent 42%),
+        radial-gradient(circle at 85% 82%, rgba(112, 0, 255, 0.14), transparent 48%),
+        linear-gradient(135deg, #040711 0%, #0B1226 50%, #03050E 100%)
+    """
+    bg_sidebar = "rgba(3, 7, 18, 0.92)"
+    card_bg = "rgba(15, 23, 42, 0.72)"
+    card_border = "rgba(56, 189, 248, 0.22)"
     text_color = "#F8FAFC"
     text_sub = "#38BDF8"
     grid_color = "rgba(30, 41, 59, 0.6)"
@@ -126,12 +134,12 @@ else:
     hover_bg, hover_text = "#0F172A", "#F8FAFC"
     glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
     
-    dock_bg = "rgba(15, 23, 42, 0.80)"
+    dock_bg = "rgba(15, 23, 42, 0.75)"
     dock_border = "rgba(56, 189, 248, 0.3)"
-    dock_item_bg = "rgba(255, 255, 255, 0.05)"
-    dock_item_border = "rgba(255, 255, 255, 0.1)"
+    dock_item_bg = "rgba(255, 255, 255, 0.04)"
+    dock_item_border = "rgba(255, 255, 255, 0.08)"
     dock_text = "#94A3B8"
-    dock_active_bg = "rgba(56, 189, 248, 0.25)"
+    dock_active_bg = "rgba(56, 189, 248, 0.22)"
     dock_active_border = "rgba(56, 189, 248, 0.8)"
     dock_active_text = "#38BDF8"
     
@@ -141,21 +149,18 @@ else:
 
 st.markdown(f"""
     <style>
-    /* 1. BACKGROUND GAMBAR HUTAN PADA SELURUH LAYAR */
+    /* 1. FUTURISTIC MESH GRADIENT BACKGROUND */
     .stApp, [data-testid="stAppViewContainer"] {{
-        background-image: {bg_overlay} !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-repeat: no-repeat !important;
+        background: {bg_gradient} !important;
         background-attachment: fixed !important;
     }}
 
-    /* 2. TRANSPARANSI CONTAINER UTAMA */
+    /* 2. TRANSPARENT INNER CONTAINERS */
     section.main, .block-container, [data-testid="stVerticalBlock"] {{
         background: transparent !important;
         background-color: transparent !important;
     }}
-
+    
     /* 3. SIDEBAR STYLING */
     [data-testid="stSidebar"] {{ 
         background: {bg_sidebar} !important; 
@@ -163,13 +168,12 @@ st.markdown(f"""
         backdrop-filter: blur(16px) !important;
     }}
 
-    /* 4. HEADER & TOMBOL SIDEBAR PADA HP (WAJIB MUNCUL DI KIRI ATAS) */
+    /* 4. HEADER & MOBILE SIDEBAR TOGGLE FIX */
     header[data-testid="stHeader"] {{
         background: transparent !important;
         z-index: 99999 !important;
     }}
     
-    /* Tombol Panah Buka Sidebar di HP */
     [data-testid="collapsedControl"], 
     button[data-testid="stHeaderIconButton"] {{
         display: flex !important;
@@ -193,14 +197,14 @@ st.markdown(f"""
         background: {card_bg} !important; 
         border: 1px solid {card_border} !important; 
         box-shadow: {glow_shadow};
-        backdrop-filter: blur(14px) !important;
+        backdrop-filter: blur(16px) !important;
         padding: 18px 20px; 
         border-radius: 16px !important;
     }}
     .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
     .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; }}
 
-    /* 6. SELECTBOX & RADIO SIDEBAR */
+    /* 6. SELECTBOX & RADIO INPUTS */
     div[data-baseweb="select"] > div {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
@@ -217,7 +221,7 @@ st.markdown(f"""
         margin-bottom: 4px !important;
     }}
 
-    /* 7. NAV-DOCK STYLING */
+    /* 7. NAV-DOCK GLASSMORPHISM STYLING */
     div[data-testid="stRadio"] > div[role="radiogroup"] {{
         display: flex !important;
         flex-direction: row !important;
@@ -291,7 +295,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 5. JS LOCK TITLE & SEMBUNYIKAN ELEMEN BAWAAN ADMIN
+# 5. JS LOCK TITLE & ADMIN HIDE
 # ------------------------------------------------------------------------------
 components.html(
     """<script>
@@ -307,7 +311,6 @@ components.html(
 
     const style = doc.createElement('style');
     style.innerHTML = `
-        /* Sembunyikan hanya widget admin & footer, biarkan header collapse button tetap ada */
         [data-testid="stStatusWidget"],
         [data-testid="manage-app-button"],
         .stAppViewer,
