@@ -18,89 +18,214 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------------------
-# 2. INJEKSI CSS: FUTURISTIC GLASSMORPHIC NAV-DOCK & GLOW
+# 2. LOAD DATA DARI GITHUB
 # ------------------------------------------------------------------------------
-st.markdown("""
+URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
+URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
+
+@st.cache_data(ttl=60)
+def load_data(url):
+    df = pd.read_csv(url)
+    df['Date_Time'] = pd.to_datetime(df['Tahun'].astype(str) + '-' + df['Bulan'].astype(str) + '-' + df['Tanggal'].astype(str) + ' ' + df['Jam'].astype(str) + ':00:00', errors='coerce') + pd.Timedelta(hours=8)
+    df['Tahun'] = df['Date_Time'].dt.year
+    df['Bulan'] = df['Date_Time'].dt.month
+    df['Tanggal'] = df['Date_Time'].dt.day
+    df['Jam'] = df['Date_Time'].dt.hour
+    return df
+
+GLOBAL_BENCHMARKS = {
+    "CO2_sync": {"name": "CO2 Global (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
+    "CO2_dry_sync": {"name": "CO2 Dry Global", "val": 422.0, "unit": "ppm", "max_gauge": 500},
+    "CH4_sync": {"name": "CH4 Global (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
+    "CH4_dry_sync": {"name": "CH4 Dry Global", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
+    "CO_sync": {"name": "Latar Belakang CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
+    "O3_Concentration_ppb": {"name": "Pedoman WHO (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
+}
+
+# ------------------------------------------------------------------------------
+# 3. SIDEBAR NAVIGATION
+# ------------------------------------------------------------------------------
+st.sidebar.image(BMKG_LOGO_URL, width=85)
+st.sidebar.title("GAW Lore Lindu Bariri")
+st.sidebar.caption("Global Atmosphere Watch - BMKG")
+st.sidebar.markdown("---")
+
+st.sidebar.markdown("### 🎨 Tema Tampilan")
+light_mode = st.sidebar.toggle("☀️ Mode Cerah (Light)", value=False)
+st.sidebar.markdown("---")
+
+instrument = st.sidebar.radio("📌 Pilih Instrumen:", ["Picarro (GHG)", "Ozon (ACOEM)"])
+if instrument == "Picarro (GHG)":
+    df = load_data(URL_PICARRO)
+    available_params = ["CO2_sync", "CO2_dry_sync", "CH4_sync", "CH4_dry_sync", "CO_sync", "H2O_sync"]
+else:
+    df = load_data(URL_OZON)
+    available_params = ["O3_Concentration_ppb", "Chassis_Temp_C", "Lamp_Temp_C", "Ambient_Pressure_torr"]
+
+selected_param = st.sidebar.selectbox("📊 Pilih Parameter:", available_params)
+
+min_date, max_date = df['Date_Time'].min().date(), df['Date_Time'].max().date()
+preset_range = st.sidebar.selectbox("📅 Rentang Waktu:", ["Semua Tahun (Full Data)", "1 Tahun Terakhir", "6 Bulan Terakhir", "1 Bulan Terakhir", "Custom Tanggal"])
+
+if preset_range == "Semua Tahun (Full Data)": start_date, end_date = min_date, max_date
+elif preset_range == "1 Tahun Terakhir": start_date, end_date = max_date - pd.Timedelta(days=365), max_date
+elif preset_range == "6 Bulan Terakhir": start_date, end_date = max_date - pd.Timedelta(days=180), max_date
+elif preset_range == "1 Bulan Terakhir": start_date, end_date = max_date - pd.Timedelta(days=30), max_date
+else:
+    date_selection = st.sidebar.date_input("Custom:", [min_date, max_date], min_value=min_date, max_value=max_date)
+    start_date, end_date = date_selection if len(date_selection) == 2 else (min_date, max_date)
+
+show_trend = st.sidebar.checkbox("📈 Tampilkan Garis Tren", value=True)
+apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
+ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
+
+# ------------------------------------------------------------------------------
+# 4. SKEMA WARNA DUAL TEMA (DINAMIS UNTUK DOCK & INPUTS)
+# ------------------------------------------------------------------------------
+if light_mode:
+    bg_main = "#F8FAFC"
+    bg_sidebar = "#F1F5F9"
+    card_bg = "rgba(255, 255, 255, 0.9)"
+    card_border = "#E2E8F0"
+    text_color = "#0F172A"
+    text_sub = "#0284C7"
+    grid_color = "#E2E8F0"
+    plotly_template = "plotly_white"
+    line_main = "#0284C7"
+    line_trend = "#EF4444"
+    plotly_bg = "#FFFFFF"
+    hover_bg, hover_text = "#FFFFFF", "#0F172A"
+    glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.08)"
+    
+    # Dock & Inputs Mode Cerah
+    dock_bg = "rgba(241, 245, 249, 0.85)"
+    dock_border = "rgba(2, 132, 199, 0.3)"
+    dock_item_bg = "rgba(255, 255, 255, 0.8)"
+    dock_item_border = "rgba(203, 213, 225, 0.8)"
+    dock_text = "#475569"
+    dock_active_bg = "rgba(2, 132, 199, 0.15)"
+    dock_active_border = "#0284C7"
+    dock_active_text = "#0284C7"
+    
+    input_bg = "#FFFFFF"
+    input_border = "#CBD5E1"
+    input_text = "#0F172A"
+else:
+    bg_main = "#070A13"
+    bg_sidebar = "#030712"
+    card_bg = "rgba(15, 23, 42, 0.75)"
+    card_border = "rgba(56, 189, 248, 0.2)"
+    text_color = "#F8FAFC"
+    text_sub = "#38BDF8"
+    grid_color = "rgba(30, 41, 59, 0.6)"
+    plotly_template = "plotly_dark"
+    line_main = "#00F2FE"
+    line_trend = "#FF2A6D"
+    plotly_bg = "#070A13"
+    hover_bg, hover_text = "#0F172A", "#F8FAFC"
+    glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
+    
+    # Dock & Inputs Mode Gelap
+    dock_bg = "rgba(15, 23, 42, 0.65)"
+    dock_border = "rgba(56, 189, 248, 0.25)"
+    dock_item_bg = "rgba(255, 255, 255, 0.03)"
+    dock_item_border = "rgba(255, 255, 255, 0.08)"
+    dock_text = "#94A3B8"
+    dock_active_bg = "rgba(56, 189, 248, 0.22)"
+    dock_active_border = "rgba(56, 189, 248, 0.7)"
+    dock_active_text = "#38BDF8"
+    
+    input_bg = "#1E293B"
+    input_border = "#334155"
+    input_text = "#F8FAFC"
+
+st.markdown(f"""
     <style>
-    /* ==========================================================================
-       NAVBAR DOCK GLASSMORPHISM (NAVIGASI MASA DEPAN)
-       ========================================================================== */
-    /* Container Nav-Dock */
-    div[data-testid="stRadio"] > div[role="radiogroup"] {
+    .stApp, .main {{ background: {bg_main} !important; }}
+    [data-testid="stSidebar"] {{ background: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
+
+    /* Metric Cards Styling */
+    .stMetric {{ 
+        background: {card_bg} !important; 
+        border: 1px solid {card_border} !important; 
+        box-shadow: {glow_shadow};
+        backdrop-filter: blur(12px) !important;
+        padding: 18px 20px; 
+        border-radius: 16px !important;
+    }}
+    .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
+    .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; }}
+
+    /* Dynamic Selectbox & Input Dropdowns */
+    div[data-baseweb="select"] > div {{
+        background-color: {input_bg} !important;
+        border-color: {input_border} !important;
+        color: {input_text} !important;
+        border-radius: 10px !important;
+    }}
+    div[data-baseweb="select"] span {{
+        color: {input_text} !important;
+    }}
+    
+    /* Dynamic Sidebar Radio Buttons */
+    [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-baseweb="radio"] {{
+        background: {input_bg} !important;
+        border: 1px solid {input_border} !important;
+        border-radius: 10px !important;
+        padding: 6px 12px !important;
+        margin-bottom: 4px !important;
+    }}
+
+    /* Dynamic Futuristic Nav-Dock Styling */
+    div[data-testid="stRadio"] > div[role="radiogroup"] {{
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
-        gap: 12px !important;
-        background: rgba(15, 23, 42, 0.65) !important;
+        gap: 10px !important;
+        background: {dock_bg} !important;
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         padding: 8px 14px !important;
         border-radius: 40px !important;
-        border: 1px solid rgba(56, 189, 248, 0.25) !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.08) !important;
+        border: 1px solid {dock_border} !important;
+        box-shadow: {glow_shadow} !important;
         margin-bottom: 25px !important;
         width: fit-content !important;
-    }
+    }}
 
-    /* Hilangkan Lingkaran Radio Button Bawaan */
-    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {{
         display: none !important;
-    }
+    }}
 
-    /* Item Kapsul Navigasi Inaktif */
-    div[data-testid="stRadio"] label[data-baseweb="radio"] {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        padding: 8px 22px !important;
+    div[data-testid="stRadio"] label[data-baseweb="radio"] {{
+        background: {dock_item_bg} !important;
+        border: 1px solid {dock_item_border} !important;
+        padding: 8px 20px !important;
         border-radius: 30px !important;
         cursor: pointer !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         margin: 0 !important;
-    }
+    }}
 
-    /* Format Teks Navigasi Inaktif */
-    div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
-        color: #94A3B8 !important;
+    div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {{
+        color: {dock_text} !important;
         font-weight: 600 !important;
         font-size: 0.9rem !important;
-        letter-spacing: 0.5px !important;
         margin: 0 !important;
-    }
+    }}
 
-    /* Hover Effect */
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
-        background: rgba(56, 189, 248, 0.15) !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        transform: translateY(-2px) !important;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover p {
-        color: #38BDF8 !important;
-    }
-
-    /* Item Kapsul Navigasi Aktif (Futuristic Translucent Glow) */
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-        background: rgba(56, 189, 248, 0.22) !important;
-        border: 1px solid rgba(56, 189, 248, 0.7) !important;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 10px rgba(56, 189, 248, 0.15) !important;
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {{
+        background: {dock_active_bg} !important;
+        border: 1px solid {dock_active_border} !important;
         backdrop-filter: blur(12px) !important;
-    }
-    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div[data-testid="stMarkdownContainer"] p {
-        color: #38BDF8 !important;
+    }}
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div[data-testid="stMarkdownContainer"] p {{
+        color: {dock_active_text} !important;
         font-weight: 700 !important;
-        text-shadow: 0 0 10px rgba(56, 189, 248, 0.6) !important;
-    }
+    }}
 
-    /* ==========================================================================
-       CARD & METRIC FUTURISTIC STYLING
-       ========================================================================== */
-    .stMetric { 
-        backdrop-filter: blur(14px) !important;
-        padding: 18px 20px; 
-        border-radius: 16px !important; 
-        transition: all 0.3s ease !important;
-    }
-
-    .status-badge {
+    /* Status Badge */
+    .status-badge {{
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -112,25 +237,30 @@ st.markdown("""
         font-size: 0.75rem;
         font-weight: 700;
         margin-bottom: 8px;
-    }
-    .pulse-dot {
+    }}
+    .pulse-dot {{
         width: 8px;
         height: 8px;
         background-color: #10B981;
         border-radius: 50%;
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
         animation: pulse 1.6s infinite;
-    }
-    @keyframes pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-    }
+    }}
+    @keyframes pulse {{
+        0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }}
+        70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }}
+        100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
+    }}
+
+    body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
+        color: {text_color} !important;
+        -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
+    }}
     </style>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 3. JS LOCK TITLE & SIDEBAR MOBILE BUTTON
+# 5. JS LOCK TITLE & SIDEBAR MOBILE BUTTON
 # ------------------------------------------------------------------------------
 components.html(
     """<script>
@@ -178,120 +308,6 @@ components.html(
     </script>""", height=0, width=0
 )
 
-# ------------------------------------------------------------------------------
-# 4. LOAD DATA DARI GITHUB
-# ------------------------------------------------------------------------------
-URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
-URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
-
-@st.cache_data(ttl=60)
-def load_data(url):
-    df = pd.read_csv(url)
-    df['Date_Time'] = pd.to_datetime(df['Tahun'].astype(str) + '-' + df['Bulan'].astype(str) + '-' + df['Tanggal'].astype(str) + ' ' + df['Jam'].astype(str) + ':00:00', errors='coerce') + pd.Timedelta(hours=8)
-    df['Tahun'] = df['Date_Time'].dt.year
-    df['Bulan'] = df['Date_Time'].dt.month
-    df['Tanggal'] = df['Date_Time'].dt.day
-    df['Jam'] = df['Date_Time'].dt.hour
-    return df
-
-GLOBAL_BENCHMARKS = {
-    "CO2_sync": {"name": "CO2 Global (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-    "CO2_dry_sync": {"name": "CO2 Dry Global", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-    "CH4_sync": {"name": "CH4 Global (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-    "CH4_dry_sync": {"name": "CH4 Dry Global", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-    "CO_sync": {"name": "Latar Belakang CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
-    "O3_Concentration_ppb": {"name": "Pedoman WHO (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
-}
-
-# ------------------------------------------------------------------------------
-# 5. SIDEBAR NAVIGATION
-# ------------------------------------------------------------------------------
-st.sidebar.image(BMKG_LOGO_URL, width=85)
-st.sidebar.title("GAW Lore Lindu Bariri")
-st.sidebar.caption("Global Atmosphere Watch - BMKG")
-st.sidebar.markdown("---")
-
-st.sidebar.markdown("### 🎨 Tema Tampilan")
-light_mode = st.sidebar.toggle("☀️ Mode Cerah (Light)", value=False)
-st.sidebar.markdown("---")
-
-instrument = st.sidebar.radio("📌 Pilih Instrumen:", ["Picarro (GHG)", "Ozon (ACOEM)"])
-if instrument == "Picarro (GHG)":
-    df = load_data(URL_PICARRO)
-    available_params = ["CO2_sync", "CO2_dry_sync", "CH4_sync", "CH4_dry_sync", "CO_sync", "H2O_sync"]
-else:
-    df = load_data(URL_OZON)
-    available_params = ["O3_Concentration_ppb", "Chassis_Temp_C", "Lamp_Temp_C", "Ambient_Pressure_torr"]
-
-selected_param = st.sidebar.selectbox("📊 Pilih Parameter:", available_params)
-
-min_date, max_date = df['Date_Time'].min().date(), df['Date_Time'].max().date()
-preset_range = st.sidebar.selectbox("📅 Rentang Waktu:", ["Semua Tahun (Full Data)", "1 Tahun Terakhir", "6 Bulan Terakhir", "1 Bulan Terakhir", "Custom Tanggal"])
-
-if preset_range == "Semua Tahun (Full Data)": start_date, end_date = min_date, max_date
-elif preset_range == "1 Tahun Terakhir": start_date, end_date = max_date - pd.Timedelta(days=365), max_date
-elif preset_range == "6 Bulan Terakhir": start_date, end_date = max_date - pd.Timedelta(days=180), max_date
-elif preset_range == "1 Bulan Terakhir": start_date, end_date = max_date - pd.Timedelta(days=30), max_date
-else:
-    date_selection = st.sidebar.date_input("Custom:", [min_date, max_date], min_value=min_date, max_value=max_date)
-    start_date, end_date = date_selection if len(date_selection) == 2 else (min_date, max_date)
-
-show_trend = st.sidebar.checkbox("📈 Tampilkan Garis Tren", value=True)
-apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
-ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
-
-# ------------------------------------------------------------------------------
-# 6. DYNAMIC DUAL THEME CONFIG
-# ------------------------------------------------------------------------------
-if light_mode:
-    bg_main = "#F1F5F9"
-    bg_sidebar = "#E2E8F0"
-    card_bg = "rgba(255, 255, 255, 0.85)"
-    card_border = "rgba(203, 213, 225, 0.8)"
-    text_color = "#0F172A"
-    text_sub = "#0284C7"
-    grid_color = "#E2E8F0"
-    plotly_template = "plotly_white"
-    line_main = "#0284C7"
-    line_trend = "#EF4444"
-    plotly_bg = "#FFFFFF"
-    hover_bg, hover_text = "#FFFFFF", "#0F172A"
-    glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.12)"
-else:
-    bg_main = "#070A13"
-    bg_sidebar = "#030712"
-    card_bg = "rgba(15, 23, 42, 0.75)"
-    card_border = "rgba(56, 189, 248, 0.2)"
-    text_color = "#F8FAFC"
-    text_sub = "#38BDF8"
-    grid_color = "rgba(30, 41, 59, 0.6)"
-    plotly_template = "plotly_dark"
-    line_main = "#00F2FE"
-    line_trend = "#FF2A6D"
-    plotly_bg = "#070A13"
-    hover_bg, hover_text = "#0F172A", "#F8FAFC"
-    glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
-
-st.markdown(f"""
-    <style>
-    .stApp, .main {{ background: {bg_main} !important; }}
-    [data-testid="stSidebar"] {{ background: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
-
-    .stMetric {{ 
-        background: {card_bg} !important; 
-        border: 1px solid {card_border} !important; 
-        box-shadow: {glow_shadow};
-    }}
-    .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
-    .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; }}
-
-    body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
-        color: {text_color} !important;
-        -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
-    }}
-    </style>
-""", unsafe_allow_html=True)
-
 def apply_chart_theme(fig, chart_title="", is_gauge=False):
     layout_update = dict(
         paper_bgcolor=plotly_bg,
@@ -312,7 +328,7 @@ def apply_chart_theme(fig, chart_title="", is_gauge=False):
     return fig
 
 # ------------------------------------------------------------------------------
-# 7. FILTERING DATA & METRICS
+# 6. FILTERING DATA & METRICS
 # ------------------------------------------------------------------------------
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
@@ -352,7 +368,7 @@ else:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 8. FUTURISTIC GLASSMORPHIC DOCK NAVIGATION (REPLACING ST.TABS)
+# 7. NAV-DOCK & TAB CONTENT
 # ------------------------------------------------------------------------------
 selected_tab = st.radio(
     "Navigation Dock",
