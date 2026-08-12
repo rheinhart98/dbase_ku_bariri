@@ -10,9 +10,14 @@ BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 # ------------------------------------------------------------------------------
 # 1. KONFIGURASI HALAMAN
 # ------------------------------------------------------------------------------
-st.set_page_config(page_title="GAW Lore Lindu Bariri", page_icon=BMKG_LOGO_URL, layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="GAW Lore Lindu Bariri", 
+    page_icon=BMKG_LOGO_URL, 
+    layout="wide", 
+    initial_sidebar_state="expanded"
+)
 
-# INJEKSI JS & CSS FIX SIDEBAR BUTTON DI HP
+# INJEKSI JS FIX TITLE & SIDEBAR MOBILE
 components.html(
     """<script>
     const doc = window.parent.document;
@@ -27,25 +32,25 @@ components.html(
 
     const style = doc.createElement('style');
     style.innerHTML = `
-        /* Sembunyikan elemen admin/footer tapi TETAP TAMPILKAN tombol sidebar */
         [data-testid="stStatusWidget"],
         [data-testid="manage-app-button"],
         .stAppViewer,
         footer,
-        #MainMenu { display: none !important; visibility: hidden !important; }
+        #MainMenu,
+        header[data-testid="stHeader"] { display: none !important; visibility: hidden !important; }
 
-        /* Buat tombol buka sidebar (panah >) muncul jelas di HP */
         [data-testid="collapsedControl"] {
             display: flex !important;
             visibility: visible !important;
             z-index: 999999 !important;
-            top: 12px !important;
-            left: 12px !important;
-            background-color: #1E293B !important;
-            border-radius: 8px !important;
-            border: 1px solid #334155 !important;
-            padding: 4px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+            top: 14px !important;
+            left: 14px !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+            backdrop-filter: blur(10px) !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            padding: 6px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
         }
         [data-testid="collapsedControl"] svg {
             fill: #38BDF8 !important;
@@ -91,9 +96,9 @@ GLOBAL_BENCHMARKS = {
 # ------------------------------------------------------------------------------
 # 3. SIDEBAR NAVIGATION
 # ------------------------------------------------------------------------------
-st.sidebar.image(BMKG_LOGO_URL, width=80)
+st.sidebar.image(BMKG_LOGO_URL, width=85)
 st.sidebar.title("GAW Lore Lindu Bariri")
-st.sidebar.caption("Stasiun Pemantau Atmosfer Global - BMKG")
+st.sidebar.caption("Global Atmosphere Watch - BMKG")
 st.sidebar.markdown("---")
 
 st.sidebar.markdown("### 🎨 Tema Tampilan")
@@ -126,38 +131,127 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA
+# 4. SKEMA WARNA ADVANCED DUAL TEMA & CSS GLASSMORPHISM
 # ------------------------------------------------------------------------------
 if light_mode:
-    bg_main, bg_sidebar, card_bg, card_border = "#F0F9FF", "#E0F2FE", "#FFFFFF", "#BAE6FD"
-    text_color, text_sub, grid_color = "#0F172A", "#0369A1", "#CBD5E1"
-    plotly_template, line_main, line_trend, plotly_bg = "plotly_white", "#0284C7", "#DC2626", "#FFFFFF"
+    bg_main = "#F1F5F9"
+    bg_sidebar = "#E2E8F0"
+    card_bg = "rgba(255, 255, 255, 0.85)"
+    card_border = "rgba(203, 213, 225, 0.8)"
+    text_color = "#0F172A"
+    text_sub = "#0284C7"
+    grid_color = "#E2E8F0"
+    plotly_template = "plotly_white"
+    line_main = "#0284C7"
+    line_trend = "#EF4444"
+    plotly_bg = "#FFFFFF"
     hover_bg, hover_text = "#FFFFFF", "#0F172A"
+    glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.12)"
 else:
-    bg_main, bg_sidebar, card_bg, card_border = "#0B1120", "#020617", "#1E293B", "#334155"
-    text_color, text_sub, grid_color = "#E2E8F0", "#94A3B8", "#1E293B"
-    plotly_template, line_main, line_trend, plotly_bg = "plotly_dark", "#00E5FF", "#FF3366", "#0B1120"
-    hover_bg, hover_text = "#1E293B", "#E2E8F0"
+    bg_main = "#070A13"
+    bg_sidebar = "#030712"
+    card_bg = "rgba(15, 23, 42, 0.75)"
+    card_border = "rgba(56, 189, 248, 0.2)"
+    text_color = "#F8FAFC"
+    text_sub = "#38BDF8"
+    grid_color = "rgba(30, 41, 59, 0.6)"
+    plotly_template = "plotly_dark"
+    line_main = "#00F2FE"
+    line_trend = "#FF2A6D"
+    plotly_bg = "#070A13"
+    hover_bg, hover_text = "#0F172A", "#F8FAFC"
+    glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
 
 st.markdown(f"""
     <style>
-    .stApp, .main {{ background-color: {bg_main} !important; }}
-    [data-testid="stSidebar"] {{ background-color: {bg_sidebar} !important; border-right: 1px solid {card_border}; }}
-    
-    /* Header transparan agar tidak menutupi tombol */
-    header[data-testid="stHeader"] {{ background: transparent !important; }}
-    
-    .stMetric {{ 
-        background-color: {card_bg} !important; 
-        padding: 15px; 
-        border-radius: 12px; 
-        border: 1px solid {card_border}; 
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    /* Background Utama */
+    .stApp, .main {{ 
+        background: {bg_main} !important; 
     }}
-    .stMetric label {{ color: {text_sub} !important; font-weight: 600; }}
-    .stMetric div {{ color: {text_color} !important; }}
-    .stTabs [aria-selected="true"] {{ color: #0284C7 !important; border-bottom-color: #0284C7 !important; }}
     
+    [data-testid="stSidebar"] {{ 
+        background: {bg_sidebar} !important; 
+        border-right: 1px solid {card_border}; 
+    }}
+
+    /* Metric Cards Glassmorphism */
+    .stMetric {{ 
+        background: {card_bg} !important; 
+        backdrop-filter: blur(12px) !important;
+        padding: 18px 20px; 
+        border-radius: 16px !important; 
+        border: 1px solid {card_border} !important; 
+        box-shadow: {glow_shadow};
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }}
+    .stMetric:hover {{
+        transform: translateY(-4px) scale(1.01);
+        border-color: {text_sub} !important;
+    }}
+    .stMetric label {{ 
+        color: {text_sub} !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        font-size: 0.78rem !important;
+    }}
+    .stMetric div[data-testid="stMetricValue"] {{ 
+        color: {text_color} !important; 
+        font-weight: 800 !important;
+        font-size: 1.8rem !important;
+    }}
+
+    /* Custom Pulsing Status Badge */
+    .status-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10B981;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }}
+    .pulse-dot {{
+        width: 8px;
+        height: 8px;
+        background-color: #10B981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 1.6s infinite;
+    }}
+    @keyframes pulse {{
+        0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }}
+        70% {{ transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }}
+        100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
+    }}
+
+    /* Custom Styled Tabs */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 8px;
+        background: {card_bg};
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid {card_border};
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        height: 42px;
+        border-radius: 8px;
+        padding: 0 16px;
+        color: {text_color} !important;
+        font-weight: 600;
+        border: none !important;
+    }}
+    .stTabs [aria-selected="true"] {{
+        background: {text_sub} !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    }}
+
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
         color: {text_color} !important;
         -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important; user-select: none !important;
@@ -171,10 +265,10 @@ def apply_chart_theme(fig, chart_title="", is_gauge=False):
         plot_bgcolor=plotly_bg,
         font=dict(color=text_color, family="sans-serif"),
         legend=dict(font=dict(color=text_color)),
-        hoverlabel=dict(bgcolor=hover_bg, font_color=hover_text, font_size=12)
+        hoverlabel=dict(bgcolor=hover_bg, font_color=hover_text, font_size=12, bordercolor=card_border)
     )
     if chart_title:
-        layout_update["title"] = dict(text=chart_title, font=dict(color=text_color, size=16))
+        layout_update["title"] = dict(text=chart_title, font=dict(color=text_color, size=16, family="sans-serif"))
         
     fig.update_layout(**layout_update)
     
@@ -194,8 +288,9 @@ df_filtered[f'{selected_param}_plot'] = df_filtered[selected_param].rolling(wind
 
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
+    st.markdown('<div class="status-badge"><div class="pulse-dot"></div> SYSTEM OPERATIONAL — WITA TIMEZONE</div>', unsafe_allow_html=True)
     st.title(f"📡 Monitoring {instrument}")
-    st.caption(f"Lokasi: Bariri, Sulawesi Tengah | Zona Waktu: WITA | Periode: {start_date} s/d {end_date}")
+    st.caption(f"Stasiun Pemantau Atmosfer Global Bariri | Periode: **{start_date}** s/d **{end_date}**")
 with col_head2:
     with st.expander("📍 Peta Lokasi Stasiun"):
         loc_df = pd.DataFrame({'lat': [-1.65], 'lon': [120.16]})
@@ -212,11 +307,16 @@ col3.metric("Nilai Minimum", f"{min_val:.3f}")
 has_benchmark = selected_param in GLOBAL_BENCHMARKS
 if has_benchmark:
     bench_val = GLOBAL_BENCHMARKS[selected_param]["val"]
-    col4.metric(label=f"Acuan Global ({GLOBAL_BENCHMARKS[selected_param]['unit']})", value=f"{bench_val}", delta=f"{mean_val - bench_val:+.3f} vs Global", delta_color="inverse" if (mean_val - bench_val) > 0 else "normal")
+    col4.metric(
+        label=f"Acuan Global ({GLOBAL_BENCHMARKS[selected_param]['unit']})", 
+        value=f"{bench_val}", 
+        delta=f"{mean_val - bench_val:+.3f} vs Global", 
+        delta_color="inverse" if (mean_val - bench_val) > 0 else "normal"
+    )
 else:
     col4.metric("Data Valid", f"{(len(valid_series)/len(df_filtered)*100):.1f}%")
 
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
 # 6. TABS INTERFACE
@@ -225,18 +325,31 @@ tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap"
 
 with tab1:
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_filtered["Date_Time"], y=df_filtered[f'{selected_param}_plot'], mode='lines', name=f"Data {selected_param}", line=dict(color=line_main, width=1.5)))
+    # Smoother spline curve for modern look
+    fig.add_trace(go.Scatter(
+        x=df_filtered["Date_Time"], 
+        y=df_filtered[f'{selected_param}_plot'], 
+        mode='lines', 
+        name=f"Data {selected_param}", 
+        line=dict(color=line_main, width=1.8, shape='spline')
+    ))
     
     df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
         slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_param], 1)
-        fig.add_trace(go.Scatter(x=df_trend_valid["Date_Time"], y=slope * x_secs + intercept, mode='lines', name='Tren Linear', line=dict(color=line_trend, width=2.5, dash='dash')))
+        fig.add_trace(go.Scatter(
+            x=df_trend_valid["Date_Time"], 
+            y=slope * x_secs + intercept, 
+            mode='lines', 
+            name='Tren Linear', 
+            line=dict(color=line_trend, width=2.2, dash='dash')
+        ))
     
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
     
-    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=500)
+    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=520)
     apply_chart_theme(fig, chart_title=f"Tren Waktu Pengamatan: {selected_param}")
     st.plotly_chart(fig, use_container_width=True)
 
@@ -256,7 +369,7 @@ with tab2:
         with c_top2:
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title="Pola Musiman Bulanan")
-            fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'))
+            fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'), line_shape='spline')
             fig_monthly.update_layout(height=380)
             apply_chart_theme(fig_monthly, chart_title="Pola Musiman Bulanan")
             st.plotly_chart(fig_monthly, use_container_width=True)
@@ -267,7 +380,7 @@ with tab2:
         with c_bot1:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
             fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title="Siklus Diurnal (WITA)")
-            fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8))
+            fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8), line_shape='spline')
             fig_diurnal.update_layout(height=380)
             fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3])
             apply_chart_theme(fig_diurnal, chart_title="Siklus Diurnal (WITA)")
@@ -293,24 +406,24 @@ with tab3:
                 mode = "gauge+number+delta",
                 value = mean_val,
                 domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 20, 'color': text_color}},
-                number = {'font': {'size': 50, 'color': text_color}},
+                title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 18, 'color': text_color}},
+                number = {'font': {'size': 48, 'color': text_color}},
                 delta = {
                     'reference': bench_info['val'], 
                     'position': "bottom",
-                    'font': {'size': 24},
+                    'font': {'size': 22},
                     'increasing': {'color': "#F43F5E"}, 
                     'decreasing': {'color': "#10B981"}
                 },
                 gauge = {
                     'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': text_color},
                     'bar': {'color': line_main},
-                    'bgcolor': card_bg,
+                    'bgcolor': "rgba(0,0,0,0.1)",
                     'borderwidth': 2,
                     'bordercolor': card_border,
                     'steps': [
-                        {'range': [0, bench_info['val']], 'color': "rgba(16, 185, 129, 0.15)"},
-                        {'range': [bench_info['val'], bench_info['max_gauge']], 'color': "rgba(244, 63, 94, 0.2)"}],
+                        {'range': [0, bench_info['val']], 'color': "rgba(16, 185, 129, 0.18)"},
+                        {'range': [bench_info['val'], bench_info['max_gauge']], 'color': "rgba(244, 63, 94, 0.22)"}],
                     'threshold': {
                         'line': {'color': "#F43F5E", 'width': 4},
                         'thickness': 0.75,
@@ -332,7 +445,7 @@ with tab3:
             - **Ambang Batas Global:** `{bench_info['val']} {bench_info['unit']}`
             
             **Kesimpulan:**
-            Konsentrasi {selected_param} saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}** 
+            Konsentrasi **{selected_param}** saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}** 
             *{'di atas (lebih buruk/tinggi)' if mean_val > bench_info['val'] else 'di bawah (lebih rendah)'}* dari nilai standar latar belakang global.
             """)
     else:
