@@ -131,7 +131,7 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA ADVANCED DUAL TEMA & CSS GLASSMORPHISM
+# 4. SKEMA WARNA DUAL TEMA & CSS TAB MODERN TRANSLUCENT
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_main = "#F1F5F9"
@@ -147,6 +147,9 @@ if light_mode:
     plotly_bg = "#FFFFFF"
     hover_bg, hover_text = "#FFFFFF", "#0F172A"
     glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.12)"
+    tab_active_bg = "rgba(2, 132, 199, 0.15)"
+    tab_active_border = "rgba(2, 132, 199, 0.5)"
+    tab_active_text = "#0284C7"
 else:
     bg_main = "#070A13"
     bg_sidebar = "#030712"
@@ -161,10 +164,12 @@ else:
     plotly_bg = "#070A13"
     hover_bg, hover_text = "#0F172A", "#F8FAFC"
     glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
+    tab_active_bg = "rgba(56, 189, 248, 0.18)"
+    tab_active_border = "rgba(56, 189, 248, 0.45)"
+    tab_active_text = "#38BDF8"
 
 st.markdown(f"""
     <style>
-    /* Background Utama */
     .stApp, .main {{ 
         background: {bg_main} !important; 
     }}
@@ -174,7 +179,6 @@ st.markdown(f"""
         border-right: 1px solid {card_border}; 
     }}
 
-    /* Metric Cards Glassmorphism */
     .stMetric {{ 
         background: {card_bg} !important; 
         backdrop-filter: blur(12px) !important;
@@ -201,7 +205,6 @@ st.markdown(f"""
         font-size: 1.8rem !important;
     }}
 
-    /* Custom Pulsing Status Badge */
     .status-badge {{
         display: inline-flex;
         align-items: center;
@@ -230,26 +233,49 @@ st.markdown(f"""
         100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }}
     }}
 
-    /* Custom Styled Tabs */
+    /* ------------------------------------------------------------------------- */
+    /* CUSTOM STYLED TABS (PILS & TRANSLUCENT GLASSMORPHISM)                     */
+    /* ------------------------------------------------------------------------- */
+    /* Sembunyikan Garis Indikator Merah/Pink Bawaan Streamlit */
+    div[data-baseweb="tab-highlight"] {{
+        display: none !important;
+    }}
+
     .stTabs [data-baseweb="tab-list"] {{
-        gap: 8px;
-        background: {card_bg};
-        padding: 6px;
-        border-radius: 12px;
-        border: 1px solid {card_border};
+        gap: 10px !important;
+        background: transparent !important;
+        padding: 6px 0px !important;
+        border-bottom: 1px solid {card_border} !important;
     }}
+
+    /* Tab Normal / Unselected */
     .stTabs [data-baseweb="tab"] {{
-        height: 42px;
-        border-radius: 8px;
-        padding: 0 16px;
+        height: 40px !important;
+        border-radius: 20px !important;
+        padding: 6px 20px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid transparent !important;
         color: {text_color} !important;
-        font-weight: 600;
-        border: none !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
     }}
-    .stTabs [aria-selected="true"] {{
-        background: {text_sub} !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+
+    /* Hover State */
+    .stTabs [data-baseweb="tab"]:hover {{
+        background: {tab_active_bg} !important;
+        border: 1px solid {tab_active_border} !important;
+        color: {tab_active_text} !important;
+    }}
+
+    /* Tab Aktif / Selected (Translucent Pill Glow) */
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {{
+        background: {tab_active_bg} !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 20px !important;
+        border: 1px solid {tab_active_border} !important;
+        color: {tab_active_text} !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 18px {tab_active_bg} !important;
     }}
 
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
@@ -325,7 +351,6 @@ tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap"
 
 with tab1:
     fig = go.Figure()
-    # Smoother spline curve for modern look
     fig.add_trace(go.Scatter(
         x=df_filtered["Date_Time"], 
         y=df_filtered[f'{selected_param}_plot'], 
