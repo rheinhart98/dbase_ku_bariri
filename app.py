@@ -127,7 +127,7 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA & DIRECT CSS TAB OVERRIDE
+# 4. SKEMA WARNA DUAL TEMA & HIGH SPECIFICITY TAB CSS
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_main = "#F1F5F9"
@@ -222,44 +222,66 @@ st.markdown(f"""
     }}
 
     /* ------------------------------------------------------------------------- */
-    /* DIRECT STREAMLIT TABS STYLING (HAPUS GARIS MERAH & UBAH KE KAPSUL TRANSLUCENT) */
+    /* ULTRA-HIGH SPECIFICITY OVERRIDE UNTUK TAB STREAMLIT                      */
     /* ------------------------------------------------------------------------- */
+    /* 1. Hilangkan Garis Merah/Pink Underline Bawaan */
     div[data-baseweb="tab-highlight"],
-    div[data-baseweb="tab-border"] {{
+    div[data-baseweb="tab-border"],
+    [data-testid="stTabs"] [data-baseweb="tab-border"],
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {{
         display: none !important;
-        background-color: transparent !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0px !important;
     }}
 
-    div[data-baseweb="tab-list"] {{
+    /* 2. Container Tab List */
+    [data-testid="stTabs"] [data-baseweb="tab-list"] {{
         gap: 12px !important;
         background-color: transparent !important;
         border-bottom: none !important;
-        padding: 6px 0px !important;
+        padding: 8px 0px !important;
     }}
 
-    button[data-baseweb="tab"] {{
+    /* 3. Tombol Tab Inaktif (Pill Normal) */
+    [data-testid="stTabs"] button[role="tab"] {{
         background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 30px !important;
-        padding: 8px 22px !important;
-        color: {text_color} !important;
+        padding: 8px 24px !important;
+        color: #94A3B8 !important;
         font-weight: 600 !important;
-        transition: all 0.3s ease !important;
         height: auto !important;
+        box-shadow: none !important;
     }}
 
-    button[data-baseweb="tab"]:hover {{
+    /* Target Teks Paragraf di dalam Tab Inaktif */
+    [data-testid="stTabs"] button[role="tab"] p {{
+        color: #94A3B8 !important;
+        font-weight: 600 !important;
+        font-size: 0.92rem !important;
+        margin: 0 !important;
+    }}
+
+    /* 4. Tab Hover State */
+    [data-testid="stTabs"] button[role="tab"]:hover {{
         background: {tab_active_bg} !important;
         border-color: {tab_active_border} !important;
+    }}
+    [data-testid="stTabs"] button[role="tab"]:hover p {{
         color: {tab_active_text} !important;
     }}
 
-    button[data-baseweb="tab"][aria-selected="true"] {{
+    /* 5. Tab Aktif (Selected Translucent Pill) */
+    [data-testid="stTabs"] button[role="tab"][aria-selected="true"] {{
         background: {tab_active_bg} !important;
         border: 1px solid {tab_active_border} !important;
+        box-shadow: 0 4px 20px {tab_active_bg} !important;
+        backdrop-filter: blur(8px) !important;
+    }}
+    [data-testid="stTabs"] button[role="tab"][aria-selected="true"] p {{
         color: {tab_active_text} !important;
         font-weight: 700 !important;
-        box-shadow: 0 4px 18px {tab_active_bg} !important;
     }}
 
     body, .stApp, p, h1, h2, h3, h4, h5, h6, span, label {{
