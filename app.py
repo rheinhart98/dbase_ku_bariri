@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
-# URL Gambar Suasana Hutan Hujan Tropis
+# Gambar Hutan Hujan Tropis / Pegunungan Mistis (Lore Lindu Vibe)
 FOREST_BG_URL = "https://images.unsplash.com/photo-1511497584788-8767611136f6?w=1920&q=80"
 
 # ------------------------------------------------------------------------------
@@ -82,11 +82,11 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA & BACKGROUND FIX
+# 4. SKEMA WARNA & INJEKSI BACKGROUND GAMBAR HUTAN (TRANSPARENT CONTAINER)
 # ------------------------------------------------------------------------------
 if light_mode:
-    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.82), rgba(248, 250, 252, 0.82)), url('{FOREST_BG_URL}')"
-    bg_sidebar = "rgba(241, 245, 249, 0.92)"
+    bg_overlay = f"linear-gradient(rgba(248, 250, 252, 0.78), rgba(248, 250, 252, 0.78)), url('{FOREST_BG_URL}')"
+    bg_sidebar = "rgba(241, 245, 249, 0.90)"
     card_bg = "rgba(255, 255, 255, 0.88)"
     card_border = "#E2E8F0"
     text_color = "#0F172A"
@@ -112,10 +112,10 @@ if light_mode:
     input_border = "#CBD5E1"
     input_text = "#0F172A"
 else:
-    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.72), rgba(7, 10, 19, 0.72)), url('{FOREST_BG_URL}')"
-    bg_sidebar = "rgba(3, 7, 18, 0.92)"
-    card_bg = "rgba(15, 23, 42, 0.78)"
-    card_border = "rgba(56, 189, 248, 0.2)"
+    bg_overlay = f"linear-gradient(rgba(7, 10, 19, 0.58), rgba(7, 10, 19, 0.58)), url('{FOREST_BG_URL}')"
+    bg_sidebar = "rgba(3, 7, 18, 0.90)"
+    card_bg = "rgba(15, 23, 42, 0.82)"
+    card_border = "rgba(56, 189, 248, 0.25)"
     text_color = "#F8FAFC"
     text_sub = "#38BDF8"
     grid_color = "rgba(30, 41, 59, 0.6)"
@@ -126,13 +126,13 @@ else:
     hover_bg, hover_text = "#0F172A", "#F8FAFC"
     glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
     
-    dock_bg = "rgba(15, 23, 42, 0.75)"
-    dock_border = "rgba(56, 189, 248, 0.25)"
-    dock_item_bg = "rgba(255, 255, 255, 0.03)"
-    dock_item_border = "rgba(255, 255, 255, 0.08)"
+    dock_bg = "rgba(15, 23, 42, 0.80)"
+    dock_border = "rgba(56, 189, 248, 0.3)"
+    dock_item_bg = "rgba(255, 255, 255, 0.05)"
+    dock_item_border = "rgba(255, 255, 255, 0.1)"
     dock_text = "#94A3B8"
-    dock_active_bg = "rgba(56, 189, 248, 0.22)"
-    dock_active_border = "rgba(56, 189, 248, 0.7)"
+    dock_active_bg = "rgba(56, 189, 248, 0.25)"
+    dock_active_border = "rgba(56, 189, 248, 0.8)"
     dock_active_text = "#38BDF8"
     
     input_bg = "#1E293B"
@@ -141,8 +141,8 @@ else:
 
 st.markdown(f"""
     <style>
-    /* Injeksi Background ke App Container Utama Streamlit */
-    [data-testid="stAppViewContainer"] {{
+    /* Pasang Background Gambar pada .stApp Utama */
+    .stApp {{
         background-image: {bg_overlay} !important;
         background-size: cover !important;
         background-position: center !important;
@@ -150,8 +150,13 @@ st.markdown(f"""
         background-attachment: fixed !important;
     }}
 
-    .stApp, .main, [data-testid="stHeader"] {{
+    /* Buat Seluruh Container Internal Menjadi Transparan Agar Gambar Terlihat */
+    [data-testid="stAppViewContainer"], 
+    [data-testid="stHeader"], 
+    section.main, 
+    .block-container {{
         background: transparent !important;
+        background-color: transparent !important;
     }}
     
     [data-testid="stSidebar"] {{ 
@@ -160,7 +165,7 @@ st.markdown(f"""
         backdrop-filter: blur(14px) !important;
     }}
 
-    /* Metric Cards Styling */
+    /* Metric Cards Glassmorphism */
     .stMetric {{ 
         background: {card_bg} !important; 
         border: 1px solid {card_border} !important; 
@@ -183,7 +188,7 @@ st.markdown(f"""
         color: {input_text} !important;
     }}
     
-    /* Dynamic Sidebar Radio Buttons */
+    /* Sidebar Radio Buttons */
     [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-baseweb="radio"] {{
         background: {input_bg} !important;
         border: 1px solid {input_border} !important;
@@ -192,7 +197,7 @@ st.markdown(f"""
         margin-bottom: 4px !important;
     }}
 
-    /* Dynamic Futuristic Nav-Dock Styling */
+    /* Nav-Dock Glassmorphism Styling */
     div[data-testid="stRadio"] > div[role="radiogroup"] {{
         display: flex !important;
         flex-direction: row !important;
