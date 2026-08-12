@@ -80,16 +80,20 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA & FUTURISTIC MESH GRADIENT BACKGROUND
+# 4. SKEMA WARNA DUAL TEMA & GRADIENT SIDEBAR + MAIN BACKGROUND
 # ------------------------------------------------------------------------------
 if light_mode:
-    # Light Holographic Gradient (Soft Sky + Electric Blue Glow Orbs)
+    # Light Holographic Gradient
     bg_gradient = """
         radial-gradient(circle at 12% 15%, rgba(56, 189, 248, 0.22), transparent 40%),
         radial-gradient(circle at 88% 85%, rgba(129, 140, 248, 0.18), transparent 45%),
         linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)
     """
-    bg_sidebar = "rgba(241, 245, 249, 0.92)"
+    # Sidebar Light Gradient (Glow Aura atas & gradasi lembut)
+    bg_sidebar = """
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15), transparent 60%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%)
+    """
     card_bg = "rgba(255, 255, 255, 0.82)"
     card_border = "#E2E8F0"
     text_color = "#0F172A"
@@ -111,17 +115,21 @@ if light_mode:
     dock_active_border = "#0284C7"
     dock_active_text = "#0284C7"
     
-    input_bg = "#FFFFFF"
+    input_bg = "rgba(255, 255, 255, 0.9)"
     input_border = "#CBD5E1"
     input_text = "#0F172A"
 else:
-    # Deep Cyberpunk Space Gradient (Cyan & Deep Violet Glow Orbs)
+    # Deep Cyberpunk Space Gradient
     bg_gradient = """
         radial-gradient(circle at 15% 18%, rgba(0, 242, 254, 0.14), transparent 42%),
         radial-gradient(circle at 85% 82%, rgba(112, 0, 255, 0.14), transparent 48%),
         linear-gradient(135deg, #040711 0%, #0B1226 50%, #03050E 100%)
     """
-    bg_sidebar = "rgba(3, 7, 18, 0.92)"
+    # Sidebar Dark Gradient (Cyan Glow Orbs atas & Deep Space linear)
+    bg_sidebar = """
+        radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.15), transparent 60%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(3, 7, 18, 0.96) 100%)
+    """
     card_bg = "rgba(15, 23, 42, 0.72)"
     card_border = "rgba(56, 189, 248, 0.22)"
     text_color = "#F8FAFC"
@@ -143,13 +151,13 @@ else:
     dock_active_border = "rgba(56, 189, 248, 0.8)"
     dock_active_text = "#38BDF8"
     
-    input_bg = "#1E293B"
+    input_bg = "rgba(30, 41, 59, 0.85)"
     input_border = "#334155"
     input_text = "#F8FAFC"
 
 st.markdown(f"""
     <style>
-    /* 1. FUTURISTIC MESH GRADIENT BACKGROUND */
+    /* 1. FUTURISTIC MESH BACKGROUND MAIN APP */
     .stApp, [data-testid="stAppViewContainer"] {{
         background: {bg_gradient} !important;
         background-attachment: fixed !important;
@@ -161,14 +169,14 @@ st.markdown(f"""
         background-color: transparent !important;
     }}
     
-    /* 3. SIDEBAR STYLING */
+    /* 3. SIDEBAR MESH GRADIENT */
     [data-testid="stSidebar"] {{ 
         background: {bg_sidebar} !important; 
-        border-right: 1px solid {card_border}; 
+        border-right: 1px solid {card_border} !important; 
         backdrop-filter: blur(16px) !important;
     }}
 
-    /* 4. HEADER & MOBILE SIDEBAR TOGGLE FIX */
+    /* 4. HEADER & MOBILE TOGGLE FIX */
     header[data-testid="stHeader"] {{
         background: transparent !important;
         z-index: 99999 !important;
@@ -210,6 +218,7 @@ st.markdown(f"""
         border-color: {input_border} !important;
         color: {input_text} !important;
         border-radius: 10px !important;
+        backdrop-filter: blur(10px) !important;
     }}
     div[data-baseweb="select"] span {{ color: {input_text} !important; }}
     
@@ -219,6 +228,7 @@ st.markdown(f"""
         border-radius: 10px !important;
         padding: 6px 12px !important;
         margin-bottom: 4px !important;
+        backdrop-filter: blur(10px) !important;
     }}
 
     /* 7. NAV-DOCK GLASSMORPHISM STYLING */
