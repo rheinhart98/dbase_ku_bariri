@@ -18,78 +18,83 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------------------
-# 2. INJEKSI CSS UTAMA: KAPSUL TRANSLUCENT & MENGHILANGKAN GARIS MERAH
+# 2. INJEKSI CSS: FUTURISTIC GLASSMORPHIC NAV-DOCK & GLOW
 # ------------------------------------------------------------------------------
 st.markdown("""
     <style>
     /* ==========================================================================
-       OVERRIDE TAB STREAMLIT (BASED ON BASEWEB UI SELECTORS)
+       NAVBAR DOCK GLASSMORPHISM (NAVIGASI MASA DEPAN)
        ========================================================================== */
-    /* 1. Hapus Garis Merah/Pink Underline Bawaan */
-    div[data-baseweb="tab-highlight"],
-    div[data-baseweb="tab-border"],
-    [data-testid="stTabs"] div[data-baseweb="tab-highlight"],
-    [data-testid="stTabs"] div[data-baseweb="tab-border"] {
-        display: none !important;
-        height: 0px !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-    }
-
-    /* 2. Format Container Tab List */
-    [data-testid="stTabs"] div[data-baseweb="tab-list"] {
+    /* Container Nav-Dock */
+    div[data-testid="stRadio"] > div[role="radiogroup"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
         gap: 12px !important;
-        background-color: transparent !important;
-        border-bottom: none !important;
-        padding: 6px 0px !important;
+        background: rgba(15, 23, 42, 0.65) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        padding: 8px 14px !important;
+        border-radius: 40px !important;
+        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.08) !important;
+        margin-bottom: 25px !important;
+        width: fit-content !important;
     }
 
-    /* 3. Desain Kapsul Tab Inaktif */
-    [data-testid="stTabs"] button[data-baseweb="tab"] {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 30px !important;
+    /* Hilangkan Lingkaran Radio Button Bawaan */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] > div:first-child {
+        display: none !important;
+    }
+
+    /* Item Kapsul Navigasi Inaktif */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         padding: 8px 22px !important;
-        height: auto !important;
+        border-radius: 30px !important;
+        cursor: pointer !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: none !important;
-    }
-
-    /* 4. Warna Teks Paragraf di Dalam Tab Inaktif */
-    [data-testid="stTabs"] button[data-baseweb="tab"] p,
-    [data-testid="stTabs"] button[data-baseweb="tab"] span {
-        color: #94A3B8 !important;
-        font-weight: 600 !important;
-        font-size: 0.9rem !important;
         margin: 0 !important;
     }
 
-    /* 5. State Hover Tab */
-    [data-testid="stTabs"] button[data-baseweb="tab"]:hover {
-        background: rgba(56, 189, 248, 0.15) !important;
-        border-color: rgba(56, 189, 248, 0.4) !important;
+    /* Format Teks Navigasi Inaktif */
+    div[data-testid="stRadio"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"] p {
+        color: #94A3B8 !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 0.5px !important;
+        margin: 0 !important;
     }
-    [data-testid="stTabs"] button[data-baseweb="tab"]:hover p {
+
+    /* Hover Effect */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
+        background: rgba(56, 189, 248, 0.15) !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:hover p {
         color: #38BDF8 !important;
     }
 
-    /* 6. State Tab Aktif (Translucent Glow Pill) */
-    [data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+    /* Item Kapsul Navigasi Aktif (Futuristic Translucent Glow) */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
         background: rgba(56, 189, 248, 0.22) !important;
-        border: 1px solid rgba(56, 189, 248, 0.65) !important;
-        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25) !important;
-        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(56, 189, 248, 0.7) !important;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.35), inset 0 0 10px rgba(56, 189, 248, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
     }
-    [data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p {
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) div[data-testid="stMarkdownContainer"] p {
         color: #38BDF8 !important;
         font-weight: 700 !important;
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.6) !important;
     }
 
     /* ==========================================================================
-       METRIC CARDS & GENERAL UI
+       CARD & METRIC FUTURISTIC STYLING
        ========================================================================== */
     .stMetric { 
-        backdrop-filter: blur(12px) !important;
+        backdrop-filter: blur(14px) !important;
         padding: 18px 20px; 
         border-radius: 16px !important; 
         transition: all 0.3s ease !important;
@@ -236,7 +241,7 @@ apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
 ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
 
 # ------------------------------------------------------------------------------
-# 6. DYNAMIC DUAL THEME DYNAMICS
+# 6. DYNAMIC DUAL THEME CONFIG
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_main = "#F1F5F9"
@@ -347,11 +352,16 @@ else:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 8. TABS INTERFACE
+# 8. FUTURISTIC GLASSMORPHIC DOCK NAVIGATION (REPLACING ST.TABS)
 # ------------------------------------------------------------------------------
-tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"])
+selected_tab = st.radio(
+    "Navigation Dock",
+    ["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"],
+    horizontal=True,
+    label_visibility="collapsed"
+)
 
-with tab1:
+if selected_tab == "📈 Time Series":
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df_filtered["Date_Time"], 
@@ -380,7 +390,7 @@ with tab1:
     apply_chart_theme(fig, chart_title=f"Tren Waktu Pengamatan: {selected_param}")
     st.plotly_chart(fig, use_container_width=True)
 
-with tab2:
+elif selected_tab == "📊 Statistik & Heatmap":
     df_stats = df_filtered.dropna(subset=[selected_param]).copy()
     if not df_stats.empty:
         month_names = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'}
@@ -422,7 +432,7 @@ with tab2:
             apply_chart_theme(fig_heat, chart_title="Heatmap Konsentrasi")
             st.plotly_chart(fig_heat, use_container_width=True)
 
-with tab3:
+elif selected_tab == "🌍 Status Kualitas Udara":
     if has_benchmark:
         st.subheader("🌍 Status Indeks Terhadap Acuan Global")
         bench_info = GLOBAL_BENCHMARKS[selected_param]
@@ -478,7 +488,7 @@ with tab3:
     else:
         st.warning("Parameter ini tidak memiliki acuan baseline global.")
 
-with tab4:
+elif selected_tab == "🔒 Download Data":
     st.subheader("📥 Download Data (Terproteksi)")
     col_auth1, col_auth2 = st.columns(2)
     with col_auth1: user_id = st.text_input("User ID:", key="input_user_id")
