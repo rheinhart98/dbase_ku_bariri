@@ -11,9 +11,9 @@ BMKG_LOGO_URL = "https://www.bmkg.go.id/asset/img/logo/logo-bmkg.png"
 # 1. KONFIGURASI HALAMAN
 # ------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="GAW Lore Lindu Bariri", 
-    page_icon=BMKG_LOGO_URL, 
-    layout="wide", 
+    page_title="GAW Lore Lindu Bariri",
+    page_icon=BMKG_LOGO_URL,
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
@@ -105,7 +105,7 @@ if light_mode:
     plotly_bg = "rgba(0,0,0,0)"
     hover_bg, hover_text = "#FFFFFF", "#0F172A"
     glow_shadow = "0 10px 25px -5px rgba(2, 132, 199, 0.08)"
-    
+
     dock_bg = "rgba(241, 245, 249, 0.85)"
     dock_border = "rgba(2, 132, 199, 0.3)"
     dock_item_bg = "rgba(255, 255, 255, 0.85)"
@@ -114,7 +114,7 @@ if light_mode:
     dock_active_bg = "rgba(2, 132, 199, 0.18)"
     dock_active_border = "#0284C7"
     dock_active_text = "#0284C7"
-    
+
     input_bg = "rgba(255, 255, 255, 0.9)"
     input_border = "#CBD5E1"
     input_text = "#0F172A"
@@ -141,7 +141,7 @@ else:
     plotly_bg = "rgba(0,0,0,0)"
     hover_bg, hover_text = "#0F172A", "#F8FAFC"
     glow_shadow = "0 10px 30px -5px rgba(0, 242, 254, 0.18)"
-    
+
     dock_bg = "rgba(15, 23, 42, 0.75)"
     dock_border = "rgba(56, 189, 248, 0.3)"
     dock_item_bg = "rgba(255, 255, 255, 0.04)"
@@ -150,7 +150,7 @@ else:
     dock_active_bg = "rgba(56, 189, 248, 0.22)"
     dock_active_border = "rgba(56, 189, 248, 0.8)"
     dock_active_text = "#38BDF8"
-    
+
     input_bg = "rgba(30, 41, 59, 0.85)"
     input_border = "#334155"
     input_text = "#F8FAFC"
@@ -168,11 +168,11 @@ st.markdown(f"""
         background: transparent !important;
         background-color: transparent !important;
     }}
-    
+
     /* 3. SIDEBAR MESH GRADIENT */
-    [data-testid="stSidebar"] {{ 
-        background: {bg_sidebar} !important; 
-        border-right: 1px solid {card_border} !important; 
+    [data-testid="stSidebar"] {{
+        background: {bg_sidebar} !important;
+        border-right: 1px solid {card_border} !important;
         backdrop-filter: blur(16px) !important;
     }}
 
@@ -181,8 +181,8 @@ st.markdown(f"""
         background: transparent !important;
         z-index: 99999 !important;
     }}
-    
-    [data-testid="collapsedControl"], 
+
+    [data-testid="collapsedControl"],
     button[data-testid="stHeaderIconButton"] {{
         display: flex !important;
         visibility: visible !important;
@@ -194,19 +194,19 @@ st.markdown(f"""
         padding: 6px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
     }}
-    [data-testid="collapsedControl"] svg, 
+    [data-testid="collapsedControl"] svg,
     button[data-testid="stHeaderIconButton"] svg {{
         fill: #38BDF8 !important;
         color: #38BDF8 !important;
     }}
 
     /* 5. METRIC CARDS GLASSMORPHISM */
-    .stMetric {{ 
-        background: {card_bg} !important; 
-        border: 1px solid {card_border} !important; 
+    .stMetric {{
+        background: {card_bg} !important;
+        border: 1px solid {card_border} !important;
         box-shadow: {glow_shadow};
         backdrop-filter: blur(16px) !important;
-        padding: 18px 20px; 
+        padding: 18px 20px;
         border-radius: 16px !important;
     }}
     .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
@@ -221,7 +221,7 @@ st.markdown(f"""
         backdrop-filter: blur(10px) !important;
     }}
     div[data-baseweb="select"] span {{ color: {input_text} !important; }}
-    
+
     [data-testid="stSidebar"] div[data-testid="stRadio"] label[data-baseweb="radio"] {{
         background: {input_bg} !important;
         border: 1px solid {input_border} !important;
@@ -310,7 +310,7 @@ st.markdown(f"""
 components.html(
     """<script>
     const doc = window.parent.document;
-    
+
     function lockTitle() {
         if (doc.title !== "GAW Lore Lindu Bariri") {
             doc.title = "GAW Lore Lindu Bariri";
@@ -348,13 +348,13 @@ def apply_chart_theme(fig, chart_title="", is_gauge=False):
     )
     if chart_title:
         layout_update["title"] = dict(text=chart_title, font=dict(color=text_color, size=16))
-        
+
     fig.update_layout(**layout_update)
-    
+
     if not is_gauge:
         fig.update_xaxes(title_font=dict(color=text_color), tickfont=dict(color=text_color), gridcolor=grid_color, zerolinecolor=grid_color)
         fig.update_yaxes(title_font=dict(color=text_color), tickfont=dict(color=text_color), gridcolor=grid_color, zerolinecolor=grid_color)
-        
+
     return fig
 
 # ------------------------------------------------------------------------------
@@ -387,9 +387,9 @@ has_benchmark = selected_param in GLOBAL_BENCHMARKS
 if has_benchmark:
     bench_val = GLOBAL_BENCHMARKS[selected_param]["val"]
     col4.metric(
-        label=f"Acuan Global ({GLOBAL_BENCHMARKS[selected_param]['unit']})", 
-        value=f"{bench_val}", 
-        delta=f"{mean_val - bench_val:+.3f} vs Global", 
+        label=f"Acuan Global ({GLOBAL_BENCHMARKS[selected_param]['unit']})",
+        value=f"{bench_val}",
+        delta=f"{mean_val - bench_val:+.3f} vs Global",
         delta_color="inverse" if (mean_val - bench_val) > 0 else "normal"
     )
 else:
@@ -410,28 +410,28 @@ selected_tab = st.radio(
 if selected_tab == "📈 Time Series":
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=df_filtered["Date_Time"], 
-        y=df_filtered[f'{selected_param}_plot'], 
-        mode='lines', 
-        name=f"Data {selected_param}", 
+        x=df_filtered["Date_Time"],
+        y=df_filtered[f'{selected_param}_plot'],
+        mode='lines',
+        name=f"Data {selected_param}",
         line=dict(color=line_main, width=1.8, shape='spline')
     ))
-    
+
     df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
         slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_param], 1)
         fig.add_trace(go.Scatter(
-            x=df_trend_valid["Date_Time"], 
-            y=slope * x_secs + intercept, 
-            mode='lines', 
-            name='Tren Linear', 
+            x=df_trend_valid["Date_Time"],
+            y=slope * x_secs + intercept,
+            mode='lines',
+            name='Tren Linear',
             line=dict(color=line_trend, width=2.2, dash='dash')
         ))
-    
+
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
-    
+
     fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=520)
     apply_chart_theme(fig, chart_title=f"Tren Waktu Pengamatan: {selected_param}")
     st.plotly_chart(fig, use_container_width=True)
@@ -441,14 +441,14 @@ elif selected_tab == "📊 Statistik & Heatmap":
     if not df_stats.empty:
         month_names = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'}
         df_stats['Nama_Bulan'] = df_stats['Bulan'].map(month_names)
-        
+
         c_top1, c_top2 = st.columns(2)
         with c_top1:
             fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
             fig_yearly.update_layout(showlegend=False, height=380)
             apply_chart_theme(fig_yearly, chart_title="Variasi Tahunan")
             st.plotly_chart(fig_yearly, use_container_width=True)
-            
+
         with c_top2:
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title="Pola Musiman Bulanan")
@@ -456,9 +456,9 @@ elif selected_tab == "📊 Statistik & Heatmap":
             fig_monthly.update_layout(height=380)
             apply_chart_theme(fig_monthly, chart_title="Pola Musiman Bulanan")
             st.plotly_chart(fig_monthly, use_container_width=True)
-            
+
         st.markdown("---")
-        
+
         c_bot1, c_bot2 = st.columns(2)
         with c_bot1:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
@@ -468,7 +468,7 @@ elif selected_tab == "📊 Statistik & Heatmap":
             fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3])
             apply_chart_theme(fig_diurnal, chart_title="Siklus Diurnal (WITA)")
             st.plotly_chart(fig_diurnal, use_container_width=True)
-            
+
         with c_bot2:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title="Heatmap Konsentrasi", color_continuous_scale="Blues" if light_mode else "ice")
@@ -482,7 +482,7 @@ elif selected_tab == "🌍 Status Kualitas Udara":
     if has_benchmark:
         st.subheader("🌍 Status Indeks Terhadap Acuan Global")
         bench_info = GLOBAL_BENCHMARKS[selected_param]
-        
+
         c_gauge1, c_gauge2 = st.columns([1, 1])
         with c_gauge1:
             fig_gauge = go.Figure(go.Indicator(
@@ -492,10 +492,10 @@ elif selected_tab == "🌍 Status Kualitas Udara":
                 title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 18, 'color': text_color}},
                 number = {'font': {'size': 48, 'color': text_color}},
                 delta = {
-                    'reference': bench_info['val'], 
+                    'reference': bench_info['val'],
                     'position': "bottom",
                     'font': {'size': 22},
-                    'increasing': {'color': "#F43F5E"}, 
+                    'increasing': {'color': "#F43F5E"},
                     'decreasing': {'color': "#10B981"}
                 },
                 gauge = {
@@ -512,23 +512,23 @@ elif selected_tab == "🌍 Status Kualitas Udara":
                         'thickness': 0.75,
                         'value': bench_info['val']}}
             ))
-            
+
             fig_gauge.update_layout(
-                template=plotly_template, 
-                height=350, 
+                template=plotly_template,
+                height=350,
                 margin=dict(l=40, r=40, t=50, b=60)
             )
             apply_chart_theme(fig_gauge, is_gauge=True)
             st.plotly_chart(fig_gauge, use_container_width=True)
-            
+
         with c_gauge2:
             st.markdown(f"""
             ### Analisis Status:
             - **Nilai Stasiun Bariri:** `{mean_val:.2f} {bench_info['unit']}`
             - **Ambang Batas Global:** `{bench_info['val']} {bench_info['unit']}`
-            
+
             **Kesimpulan:**
-            Konsentrasi **{selected_param}** saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}** 
+            Konsentrasi **{selected_param}** saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}**
             *{'di atas (lebih buruk/tinggi)' if mean_val > bench_info['val'] else 'di bawah (lebih rendah)'}* dari nilai standar latar belakang global.
             """)
     else:
@@ -539,7 +539,7 @@ elif selected_tab == "🔒 Download Data":
     col_auth1, col_auth2 = st.columns(2)
     with col_auth1: user_id = st.text_input("User ID:", key="input_user_id")
     with col_auth2: user_pass = st.text_input("Password:", type="password", key="input_password")
-        
+
     if user_id == "gawbariri" and user_pass == "gaw97094":
         st.success("✅ Autentikasi Berhasil!")
         selected_cols = st.multiselect("Pilih Kolom Data:", list(df_filtered.columns), default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
