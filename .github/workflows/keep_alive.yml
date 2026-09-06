@@ -1,0 +1,48 @@
+name: Keep Streamlit Alive
+
+on:
+  schedule:
+    # Jalan otomatis tiap 6 jam sekali
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-streamlit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium
+
+      - name: Open Streamlit App
+        run: |
+          python -c "
+          from playwright.sync_api import sync_playwright
+          import time
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=True)
+              page = browser.new_page()
+              page.goto('https://dbasekubariri-fhhc93wb6a4whpclx8dj3h.streamlit.app', timeout=60000)
+              
+              # Cek jika aplikasi dalam kondisi tidur
+              wake_button = page.locator('button:has-text(\"Yes, get this app back up!\")')
+              if wake_button.is_visible():
+                  wake_button.click()
+                  print('App was sleeping, triggered wake up button!')
+                  time.sleep(15)
+              else:
+                  print('App is already awake!')
+              
+              time.sleep(5)
+              browser.close()
+          "
