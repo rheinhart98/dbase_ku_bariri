@@ -67,15 +67,7 @@ LANG_DATA = {
         "dl_error": "❌ Invalid Credentials!",
         "dl_cols": "Select Data Columns:",
         "dl_drop_na": "Exclude missing data (-9999 / NaN)",
-        "dl_btn": "💾 Download CSV (UTC+8)",
-        "benchmarks": {
-            "CO2_sync": {"name": "Global CO2 (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-            "CO2_dry_sync": {"name": "Global Dry CO2", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-            "CH4_sync": {"name": "Global CH4 (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-            "CH4_dry_sync": {"name": "Global Dry CH4", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-            "CO_sync": {"name": "Background CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
-            "O3_Concentration_ppb": {"name": "WHO Guideline (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
-        }
+        "dl_btn": "💾 Download CSV (UTC+8)"
     },
     "Bahasa Indonesia": {
         "theme_title": "🎨 Tema Tampilan",
@@ -123,20 +115,58 @@ LANG_DATA = {
         "dl_error": "❌ Kredensial salah!",
         "dl_cols": "Pilih Kolom Data:",
         "dl_drop_na": "Keluarkan data missing (-9999 / NaN)",
-        "dl_btn": "💾 Unduh CSV (UTC+8)",
-        "benchmarks": {
-            "CO2_sync": {"name": "CO2 Global (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-            "CO2_dry_sync": {"name": "CO2 Dry Global", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-            "CH4_sync": {"name": "CH4 Global (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-            "CH4_dry_sync": {"name": "CH4 Dry Global", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-            "CO_sync": {"name": "Latar Belakang CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
-            "O3_Concentration_ppb": {"name": "Pedoman WHO (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
-        }
+        "dl_btn": "💾 Unduh CSV (UTC+8)"
     }
 }
 
 # ------------------------------------------------------------------------------
-# 3. LOAD DATA DARI GITHUB
+# 3. MAPPING PARAMETER BERSIH, KOLOM DATA, SATUAN, & BENCHMARK
+# ------------------------------------------------------------------------------
+PARAM_CONFIG = {
+    "CO2": {
+        "col": "CO2_sync",
+        "unit": "ppm",
+        "benchmark": {"name": "Global CO2 (WMO)", "val": 422.0, "max_gauge": 500}
+    },
+    "CH4": {
+        "col": "CH4_sync",
+        "unit": "ppm",
+        "benchmark": {"name": "Global CH4 (WMO)", "val": 1.93, "max_gauge": 3.0}
+    },
+    "CO": {
+        "col": "CO_sync",
+        "unit": "ppm",
+        "benchmark": {"name": "Background CO", "val": 0.10, "max_gauge": 2.0}
+    },
+    "H2O": {
+        "col": "H2O_sync",
+        "unit": "%",
+        "benchmark": None
+    },
+    "O3": {
+        "col": "O3_Concentration_ppb",
+        "unit": "ppb",
+        "benchmark": {"name": "WHO Guideline (O3)", "val": 50.0, "max_gauge": 100.0}
+    },
+    "Chassis Temp": {
+        "col": "Chassis_Temp_C",
+        "unit": "°C",
+        "benchmark": None
+    },
+    "Lamp Temp": {
+        "col": "Lamp_Temp_C",
+        "unit": "°C",
+        "benchmark": None
+    },
+    "Ambient Pressure": {
+        "col": "Ambient_Pressure_torr",
+        "unit": "torr",
+        "benchmark": None
+    }
+}
+
+# ------------------------------------------------------------------------------
+# 4. LOAD DATA DARI GITHUB
 # ------------------------------------------------------------------------------
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
@@ -152,7 +182,7 @@ def load_data(url):
     return df
 
 # ------------------------------------------------------------------------------
-# 4. SIDEBAR NAVIGATION & LANGUAGE TOGGLE
+# 5. SIDEBAR NAVIGATION & LANGUAGE TOGGLE
 # ------------------------------------------------------------------------------
 st.sidebar.image(BMKG_LOGO_URL, width=85)
 st.sidebar.title("GAW Lore Lindu Bariri")
@@ -169,12 +199,19 @@ st.sidebar.markdown("---")
 instrument = st.sidebar.radio(t['inst_select'], ["Picarro (GHG)", "Ozon (ACOEM)"])
 if instrument == "Picarro (GHG)":
     df = load_data(URL_PICARRO)
-    available_params = ["CO2_sync", "CO2_dry_sync", "CH4_sync", "CH4_dry_sync", "CO_sync", "H2O_sync"]
+    available_params = ["CO2", "CH4", "CO", "H2O"]
 else:
     df = load_data(URL_OZON)
-    available_params = ["O3_Concentration_ppb", "Chassis_Temp_C", "Lamp_Temp_C", "Ambient_Pressure_torr"]
+    available_params = ["O3", "Chassis Temp", "Lamp Temp", "Ambient Pressure"]
 
 selected_param = st.sidebar.selectbox(t['param_select'], available_params)
+
+# Ambil detail konfigurasi parameter yang dipilih
+param_info = PARAM_CONFIG[selected_param]
+selected_col = param_info["col"]
+param_unit = param_info["unit"]
+param_label = f"{selected_param} ({param_unit})"
+benchmark_info = param_info["benchmark"]
 
 min_date, max_date = df['Date_Time'].min().date(), df['Date_Time'].max().date()
 preset_options = t['preset_options']
@@ -192,10 +229,8 @@ show_trend = st.sidebar.checkbox(t['show_trend'], value=True)
 apply_ma = st.sidebar.checkbox(t['apply_ma'])
 ma_window = st.sidebar.slider(t['ma_window'], 3, 72, 24) if apply_ma else 1
 
-GLOBAL_BENCHMARKS = t['benchmarks']
-
 # ------------------------------------------------------------------------------
-# 5. SKEMA WARNA DUAL TEMA & GRADIENT SIDEBAR + MAIN BACKGROUND
+# 6. SKEMA WARNA DUAL TEMA & GRADIENT SIDEBAR + MAIN BACKGROUND
 # ------------------------------------------------------------------------------
 if light_mode:
     bg_gradient = """
@@ -408,7 +443,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 6. JS LOCK TITLE & ADMIN HIDE
+# 7. JS LOCK TITLE & ADMIN HIDE
 # ------------------------------------------------------------------------------
 components.html(
     """<script>
@@ -461,12 +496,12 @@ def apply_chart_theme(fig, chart_title="", is_gauge=False):
     return fig
 
 # ------------------------------------------------------------------------------
-# 7. FILTERING DATA & METRICS
+# 8. FILTERING DATA & METRICS
 # ------------------------------------------------------------------------------
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
-df_filtered[selected_param] = df_filtered[selected_param].replace(-9999, np.nan)
-df_filtered[f'{selected_param}_plot'] = df_filtered[selected_param].rolling(window=ma_window, min_periods=1).mean() if apply_ma else df_filtered[selected_param]
+df_filtered[selected_col] = df_filtered[selected_col].replace(-9999, np.nan)
+df_filtered[f'{selected_col}_plot'] = df_filtered[selected_col].rolling(window=ma_window, min_periods=1).mean() if apply_ma else df_filtered[selected_col]
 
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
@@ -478,19 +513,19 @@ with col_head2:
         loc_df = pd.DataFrame({'lat': [-1.65], 'lon': [120.16]})
         st.map(loc_df, zoom=10, use_container_width=True)
 
-valid_series = df_filtered[selected_param].dropna()
+valid_series = df_filtered[selected_col].dropna()
 mean_val, max_val, min_val = (valid_series.mean(), valid_series.max(), valid_series.min()) if not valid_series.empty else (0,0,0)
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric(t['avg_local'], f"{mean_val:.3f}")
-col2.metric(t['max_val'], f"{max_val:.3f}")
-col3.metric(t['min_val'], f"{min_val:.3f}")
+col1.metric(f"{t['avg_local']} ({param_unit})", f"{mean_val:.3f}")
+col2.metric(f"{t['max_val']} ({param_unit})", f"{max_val:.3f}")
+col3.metric(f"{t['min_val']} ({param_unit})", f"{min_val:.3f}")
 
-has_benchmark = selected_param in GLOBAL_BENCHMARKS
+has_benchmark = benchmark_info is not None
 if has_benchmark:
-    bench_val = GLOBAL_BENCHMARKS[selected_param]["val"]
+    bench_val = benchmark_info["val"]
     col4.metric(
-        label=f"{t['global_ref']} ({GLOBAL_BENCHMARKS[selected_param]['unit']})",
+        label=f"{t['global_ref']} ({param_unit})",
         value=f"{bench_val}",
         delta=f"{mean_val - bench_val:+.3f} vs Global",
         delta_color="inverse" if (mean_val - bench_val) > 0 else "normal"
@@ -501,7 +536,7 @@ else:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 8. NAV-DOCK & TAB CONTENT
+# 9. NAV-DOCK & TAB CONTENT
 # ------------------------------------------------------------------------------
 selected_tab = st.radio(
     "Navigation Dock",
@@ -514,16 +549,16 @@ if selected_tab == t['tabs'][0]:
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df_filtered["Date_Time"],
-        y=df_filtered[f'{selected_param}_plot'],
+        y=df_filtered[f'{selected_col}_plot'],
         mode='lines',
-        name=f"Data {selected_param}",
+        name=f"{selected_param}",
         line=dict(color=line_main, width=1.8, shape='spline')
     ))
 
-    df_trend_valid = df_filtered.dropna(subset=[selected_param]).copy()
+    df_trend_valid = df_filtered.dropna(subset=[selected_col]).copy()
     if show_trend and len(df_trend_valid) > 1:
         x_secs = (df_trend_valid["Date_Time"] - df_trend_valid["Date_Time"].min()).dt.total_seconds()
-        slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_param], 1)
+        slope, intercept = np.polyfit(x_secs, df_trend_valid[selected_col], 1)
         fig.add_trace(go.Scatter(
             x=df_trend_valid["Date_Time"],
             y=slope * x_secs + intercept,
@@ -533,32 +568,34 @@ if selected_tab == t['tabs'][0]:
         ))
 
     if has_benchmark:
-        fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
+        fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val} {param_unit}")
 
-    fig.update_layout(xaxis_title=t['time_x'], yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=520)
-    apply_chart_theme(fig, chart_title=f"{t['trend_title']} {selected_param}")
+    fig.update_layout(xaxis_title=t['time_x'], yaxis_title=param_label, hovermode="x unified", template=plotly_template, height=520)
+    apply_chart_theme(fig, chart_title=f"{t['trend_title']} {param_label}")
     st.plotly_chart(fig, use_container_width=True)
 
 elif selected_tab == t['tabs'][1]:
-    df_stats = df_filtered.dropna(subset=[selected_param]).copy()
+    df_stats = df_filtered.dropna(subset=[selected_col]).copy()
     if not df_stats.empty:
         month_names = t['month_names']
         df_stats['Nama_Bulan'] = df_stats['Bulan'].map(month_names)
 
         c_top1, c_top2 = st.columns(2)
         with c_top1:
-            fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title=t['yearly_title'], color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
+            fig_yearly = px.box(df_stats, x="Tahun", y=selected_col, color="Tahun", template=plotly_template, title=t['yearly_title'], color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
             fig_yearly.update_layout(showlegend=False, height=380)
             fig_yearly.update_xaxes(title_text=t['year_axis'])
+            fig_yearly.update_yaxes(title_text=param_label)
             apply_chart_theme(fig_yearly, chart_title=t['yearly_title'])
             st.plotly_chart(fig_yearly, use_container_width=True)
 
         with c_top2:
-            df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
-            fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title=t['monthly_title'])
+            df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_col].mean().reset_index().sort_values('Bulan')
+            fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_col, markers=True, template=plotly_template, title=t['monthly_title'])
             fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'), line_shape='spline')
             fig_monthly.update_layout(height=380)
             fig_monthly.update_xaxes(title_text=t['month_axis'])
+            fig_monthly.update_yaxes(title_text=param_label)
             apply_chart_theme(fig_monthly, chart_title=t['monthly_title'])
             st.plotly_chart(fig_monthly, use_container_width=True)
 
@@ -566,28 +603,28 @@ elif selected_tab == t['tabs'][1]:
 
         c_bot1, c_bot2 = st.columns(2)
         with c_bot1:
-            diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
-            fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title=t['diurnal_title'])
+            diurnal_agg = df_stats.groupby('Jam')[selected_col].mean().reset_index()
+            fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_col, markers=True, template=plotly_template, title=t['diurnal_title'])
             fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8), line_shape='spline')
             fig_diurnal.update_layout(height=380)
             fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3], title_text=t['hour_axis'])
+            fig_diurnal.update_yaxes(title_text=param_label)
             apply_chart_theme(fig_diurnal, chart_title=t['diurnal_title'])
             st.plotly_chart(fig_diurnal, use_container_width=True)
 
         with c_bot2:
-            heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
-            fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title=t['heatmap_title'], color_continuous_scale="Blues" if light_mode else "ice")
+            heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_col].mean().reset_index().sort_values('Bulan')
+            fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_col, histfunc="avg", template=plotly_template, title=t['heatmap_title'], color_continuous_scale="Blues" if light_mode else "ice", labels={selected_col: param_label})
             fig_heat.update_layout(height=380)
             fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)), title_text=t['hour_axis'])
             fig_heat.update_yaxes(title_text=t['month_axis'])
-            fig_heat.update_coloraxes(colorbar_tickfont_color=text_color, colorbar_title_font_color=text_color)
+            fig_heat.update_coloraxes(colorbar_tickfont_color=text_color, colorbar_title_font_color=text_color, colorbar_title_text=param_label)
             apply_chart_theme(fig_heat, chart_title=t['heatmap_title'])
             st.plotly_chart(fig_heat, use_container_width=True)
 
 elif selected_tab == t['tabs'][2]:
     if has_benchmark:
         st.subheader(t['aq_subheader'])
-        bench_info = GLOBAL_BENCHMARKS[selected_param]
 
         c_gauge1, c_gauge2 = st.columns([1, 1])
         with c_gauge1:
@@ -595,28 +632,28 @@ elif selected_tab == t['tabs'][2]:
                 mode = "gauge+number+delta",
                 value = mean_val,
                 domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': f"Bariri vs {bench_info['name']}", 'font': {'size': 18, 'color': text_color}},
-                number = {'font': {'size': 48, 'color': text_color}},
+                title = {'text': f"Bariri vs {benchmark_info['name']}", 'font': {'size': 18, 'color': text_color}},
+                number = {'font': {'size': 48, 'color': text_color}, 'suffix': f" {param_unit}"},
                 delta = {
-                    'reference': bench_info['val'],
+                    'reference': benchmark_info['val'],
                     'position': "bottom",
                     'font': {'size': 22},
                     'increasing': {'color': "#F43F5E"},
                     'decreasing': {'color': "#10B981"}
                 },
                 gauge = {
-                    'axis': {'range': [None, bench_info['max_gauge']], 'tickwidth': 1, 'tickcolor': text_color},
+                    'axis': {'range': [None, benchmark_info['max_gauge']], 'tickwidth': 1, 'tickcolor': text_color},
                     'bar': {'color': line_main},
                     'bgcolor': "rgba(0,0,0,0.1)",
                     'borderwidth': 2,
                     'bordercolor': card_border,
                     'steps': [
-                        {'range': [0, bench_info['val']], 'color': "rgba(16, 185, 129, 0.18)"},
-                        {'range': [bench_info['val'], bench_info['max_gauge']], 'color': "rgba(244, 63, 94, 0.22)"}],
+                        {'range': [0, benchmark_info['val']], 'color': "rgba(16, 185, 129, 0.18)"},
+                        {'range': [benchmark_info['val'], benchmark_info['max_gauge']], 'color': "rgba(244, 63, 94, 0.22)"}],
                     'threshold': {
                         'line': {'color': "#F43F5E", 'width': 4},
                         'thickness': 0.75,
-                        'value': bench_info['val']}}
+                        'value': benchmark_info['val']}}
             ))
 
             fig_gauge.update_layout(
@@ -628,14 +665,14 @@ elif selected_tab == t['tabs'][2]:
             st.plotly_chart(fig_gauge, use_container_width=True)
 
         with c_gauge2:
-            status_str = t['aq_above'] if mean_val > bench_info['val'] else t['aq_below']
-            diff_val = abs(mean_val - bench_info['val'])
-            conc_desc = t['aq_conc_text'].format(param=selected_param, diff=diff_val, unit=bench_info['unit'], status=status_str)
+            status_str = t['aq_above'] if mean_val > benchmark_info['val'] else t['aq_below']
+            diff_val = abs(mean_val - benchmark_info['val'])
+            conc_desc = t['aq_conc_text'].format(param=param_label, diff=diff_val, unit=param_unit, status=status_str)
 
             st.markdown(f"""
             ### {t['aq_analysis']}
-            - **{t['aq_bariri_val']}** `{mean_val:.2f} {bench_info['unit']}`
-            - **{t['aq_global_val']}** `{bench_info['val']} {bench_info['unit']}`
+            - **{t['aq_bariri_val']}** `{mean_val:.2f} {param_unit}`
+            - **{t['aq_global_val']}** `{benchmark_info['val']} {param_unit}`
 
             **{t['aq_conclusion']}**
             {conc_desc}
@@ -651,8 +688,8 @@ elif selected_tab == t['tabs'][3]:
 
     if user_id == "gawbariri" and user_pass == "gaw97094":
         st.success(t['dl_success'])
-        selected_cols = st.multiselect(t['dl_cols'], list(df_filtered.columns), default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
-        df_download = df_filtered[selected_cols].dropna(subset=[selected_param]) if st.checkbox(t['dl_drop_na'], value=True) else df_filtered[selected_cols].copy()
+        selected_cols = st.multiselect(t['dl_cols'], list(df_filtered.columns), default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_col])
+        df_download = df_filtered[selected_cols].dropna(subset=[selected_col]) if st.checkbox(t['dl_drop_na'], value=True) else df_filtered[selected_cols].copy()
         st.dataframe(df_download.head(50), use_container_width=True)
         st.download_button(t['dl_btn'], df_download.to_csv(index=False).encode('utf-8'), f"GAW_Bariri_{selected_param}.csv", "text/csv")
     elif user_id or user_pass:
