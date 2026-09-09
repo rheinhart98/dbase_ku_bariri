@@ -32,7 +32,7 @@ LANG_DATA = {
         "show_trend": "📈 Show Trendline",
         "apply_ma": "🌊 Apply Moving Average",
         "ma_window": "MA Window (Hours):",
-        "status_badge": "SYSTEM OPERATIONAL — WITA TIMEZONE",
+        "status_badge": "SYSTEM OPERATIONAL — UTC+8 TIMEZONE",
         "map_title": "📍 Station Location Map",
         "avg_local": "Local Average",
         "max_val": "Maximum Value",
@@ -41,12 +41,15 @@ LANG_DATA = {
         "valid_data": "Valid Data",
         "tabs": ["📈 Time Series", "📊 Statistics & Heatmap", "🌍 Air Quality Status", "🔒 Data Download"],
         "trend_line_name": "Linear Trend",
-        "time_x": "Time (WITA)",
+        "time_x": "Time (UTC+8)",
         "trend_title": "Observation Trend:",
         "yearly_title": "Yearly Variation",
         "monthly_title": "Monthly Seasonal Pattern",
-        "diurnal_title": "Diurnal Cycle (WITA)",
+        "diurnal_title": "Diurnal Cycle (UTC+8)",
         "heatmap_title": "Concentration Heatmap",
+        "year_axis": "Year",
+        "month_axis": "Month",
+        "hour_axis": "Hour (UTC+8)",
         "month_names": {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'},
         "aq_subheader": "🌍 Status Index Against Global Baseline",
         "aq_analysis": "Status Analysis:",
@@ -64,7 +67,7 @@ LANG_DATA = {
         "dl_error": "❌ Invalid Credentials!",
         "dl_cols": "Select Data Columns:",
         "dl_drop_na": "Exclude missing data (-9999 / NaN)",
-        "dl_btn": "💾 Download CSV (WITA)",
+        "dl_btn": "💾 Download CSV (UTC+8)",
         "benchmarks": {
             "CO2_sync": {"name": "Global CO2 (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
             "CO2_dry_sync": {"name": "Global Dry CO2", "val": 422.0, "unit": "ppm", "max_gauge": 500},
@@ -85,7 +88,7 @@ LANG_DATA = {
         "show_trend": "📈 Tampilkan Garis Tren",
         "apply_ma": "🌊 Gunakan Moving Average",
         "ma_window": "Jendela MA (Jam):",
-        "status_badge": "SYSTEM OPERATIONAL — WITA TIMEZONE",
+        "status_badge": "SISTEM OPERASIONAL — ZONA WAKTU UTC+8",
         "map_title": "📍 Peta Lokasi Stasiun",
         "avg_local": "Rata-Rata Lokal",
         "max_val": "Nilai Maksimum",
@@ -94,12 +97,15 @@ LANG_DATA = {
         "valid_data": "Data Valid",
         "tabs": ["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"],
         "trend_line_name": "Tren Linear",
-        "time_x": "Waktu (WITA)",
+        "time_x": "Waktu (UTC+8)",
         "trend_title": "Tren Waktu Pengamatan:",
         "yearly_title": "Variasi Tahunan",
         "monthly_title": "Pola Musiman Bulanan",
-        "diurnal_title": "Siklus Diurnal (WITA)",
+        "diurnal_title": "Siklus Diurnal (UTC+8)",
         "heatmap_title": "Heatmap Konsentrasi",
+        "year_axis": "Tahun",
+        "month_axis": "Bulan",
+        "hour_axis": "Jam (UTC+8)",
         "month_names": {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'},
         "aq_subheader": "🌍 Status Indeks Terhadap Acuan Global",
         "aq_analysis": "Analisis Status:",
@@ -117,7 +123,7 @@ LANG_DATA = {
         "dl_error": "❌ Kredensial salah!",
         "dl_cols": "Pilih Kolom Data:",
         "dl_drop_na": "Keluarkan data missing (-9999 / NaN)",
-        "dl_btn": "💾 Unduh CSV (WITA)",
+        "dl_btn": "💾 Unduh CSV (UTC+8)",
         "benchmarks": {
             "CO2_sync": {"name": "CO2 Global (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
             "CO2_dry_sync": {"name": "CO2 Dry Global", "val": 422.0, "unit": "ppm", "max_gauge": 500},
@@ -153,7 +159,6 @@ st.sidebar.title("GAW Lore Lindu Bariri")
 st.sidebar.caption("Global Atmosphere Watch - BMKG")
 st.sidebar.markdown("---")
 
-# Opsi Pemilih Bahasa (Default English)
 selected_lang = st.sidebar.radio("🌐 Language / Bahasa", ["English", "Bahasa Indonesia"], index=0)
 t = LANG_DATA[selected_lang]
 
@@ -544,6 +549,7 @@ elif selected_tab == t['tabs'][1]:
         with c_top1:
             fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title=t['yearly_title'], color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
             fig_yearly.update_layout(showlegend=False, height=380)
+            fig_yearly.update_xaxes(title_text=t['year_axis'])
             apply_chart_theme(fig_yearly, chart_title=t['yearly_title'])
             st.plotly_chart(fig_yearly, use_container_width=True)
 
@@ -552,6 +558,7 @@ elif selected_tab == t['tabs'][1]:
             fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title=t['monthly_title'])
             fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'), line_shape='spline')
             fig_monthly.update_layout(height=380)
+            fig_monthly.update_xaxes(title_text=t['month_axis'])
             apply_chart_theme(fig_monthly, chart_title=t['monthly_title'])
             st.plotly_chart(fig_monthly, use_container_width=True)
 
@@ -563,7 +570,7 @@ elif selected_tab == t['tabs'][1]:
             fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title=t['diurnal_title'])
             fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8), line_shape='spline')
             fig_diurnal.update_layout(height=380)
-            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3])
+            fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3], title_text=t['hour_axis'])
             apply_chart_theme(fig_diurnal, chart_title=t['diurnal_title'])
             st.plotly_chart(fig_diurnal, use_container_width=True)
 
@@ -571,7 +578,8 @@ elif selected_tab == t['tabs'][1]:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
             fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title=t['heatmap_title'], color_continuous_scale="Blues" if light_mode else "ice")
             fig_heat.update_layout(height=380)
-            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)))
+            fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)), title_text=t['hour_axis'])
+            fig_heat.update_yaxes(title_text=t['month_axis'])
             fig_heat.update_coloraxes(colorbar_tickfont_color=text_color, colorbar_title_font_color=text_color)
             apply_chart_theme(fig_heat, chart_title=t['heatmap_title'])
             st.plotly_chart(fig_heat, use_container_width=True)
