@@ -147,21 +147,6 @@ PARAM_CONFIG = {
         "col": "O3_Concentration_ppb",
         "unit": "ppb",
         "benchmark": {"name": "WHO Guideline (O3)", "val": 50.0, "max_gauge": 100.0}
-    },
-    "Chassis Temp": {
-        "col": "Chassis_Temp_C",
-        "unit": "°C",
-        "benchmark": None
-    },
-    "Lamp Temp": {
-        "col": "Lamp_Temp_C",
-        "unit": "°C",
-        "benchmark": None
-    },
-    "Ambient Pressure": {
-        "col": "Ambient_Pressure_torr",
-        "unit": "torr",
-        "benchmark": None
     }
 }
 
@@ -202,11 +187,10 @@ if instrument == "Picarro (GHG)":
     available_params = ["CO2", "CH4", "CO", "H2O"]
 else:
     df = load_data(URL_OZON)
-    available_params = ["O3", "Chassis Temp", "Lamp Temp", "Ambient Pressure"]
+    available_params = ["O3"]
 
 selected_param = st.sidebar.selectbox(t['param_select'], available_params)
 
-# Ambil detail konfigurasi parameter yang dipilih
 param_info = PARAM_CONFIG[selected_param]
 selected_col = param_info["col"]
 param_unit = param_info["unit"]
