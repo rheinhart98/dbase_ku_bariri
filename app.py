@@ -18,7 +18,119 @@ st.set_page_config(
 )
 
 # ------------------------------------------------------------------------------
-# 2. LOAD DATA DARI GITHUB
+# 2. DICTIONARY MULTI-BAHASA (I18N)
+# ------------------------------------------------------------------------------
+LANG_DATA = {
+    "English": {
+        "theme_title": "🎨 Display Theme",
+        "light_mode": "☀️ Light Mode",
+        "lang_select": "🌐 Language",
+        "inst_select": "📌 Select Instrument:",
+        "param_select": "📊 Select Parameter:",
+        "range_select": "📅 Time Range:",
+        "preset_options": ["All Years (Full Data)", "Last 1 Year", "Last 6 Months", "Last 1 Month", "Custom Date"],
+        "show_trend": "📈 Show Trendline",
+        "apply_ma": "🌊 Apply Moving Average",
+        "ma_window": "MA Window (Hours):",
+        "status_badge": "SYSTEM OPERATIONAL — WITA TIMEZONE",
+        "map_title": "📍 Station Location Map",
+        "avg_local": "Local Average",
+        "max_val": "Maximum Value",
+        "min_val": "Minimum Value",
+        "global_ref": "Global Ref",
+        "valid_data": "Valid Data",
+        "tabs": ["📈 Time Series", "📊 Statistics & Heatmap", "🌍 Air Quality Status", "🔒 Data Download"],
+        "trend_line_name": "Linear Trend",
+        "time_x": "Time (WITA)",
+        "trend_title": "Observation Trend:",
+        "yearly_title": "Yearly Variation",
+        "monthly_title": "Monthly Seasonal Pattern",
+        "diurnal_title": "Diurnal Cycle (WITA)",
+        "heatmap_title": "Concentration Heatmap",
+        "month_names": {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'},
+        "aq_subheader": "🌍 Status Index Against Global Baseline",
+        "aq_analysis": "Status Analysis:",
+        "aq_bariri_val": "Bariri Station Value:",
+        "aq_global_val": "Global Threshold:",
+        "aq_conclusion": "Conclusion:",
+        "aq_above": "above (higher/worse)",
+        "aq_below": "below (lower)",
+        "aq_conc_text": "The current concentration of **{param}** is **{diff:.2f} {unit}** {status} standard global background levels.",
+        "no_benchmark": "This parameter does not have a global baseline reference.",
+        "dl_subheader": "📥 Data Download (Protected)",
+        "dl_user": "User ID:",
+        "dl_pass": "Password:",
+        "dl_success": "✅ Authentication Successful!",
+        "dl_error": "❌ Invalid Credentials!",
+        "dl_cols": "Select Data Columns:",
+        "dl_drop_na": "Exclude missing data (-9999 / NaN)",
+        "dl_btn": "💾 Download CSV (WITA)",
+        "benchmarks": {
+            "CO2_sync": {"name": "Global CO2 (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
+            "CO2_dry_sync": {"name": "Global Dry CO2", "val": 422.0, "unit": "ppm", "max_gauge": 500},
+            "CH4_sync": {"name": "Global CH4 (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
+            "CH4_dry_sync": {"name": "Global Dry CH4", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
+            "CO_sync": {"name": "Background CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
+            "O3_Concentration_ppb": {"name": "WHO Guideline (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
+        }
+    },
+    "Bahasa Indonesia": {
+        "theme_title": "🎨 Tema Tampilan",
+        "light_mode": "☀️ Mode Cerah (Light)",
+        "lang_select": "🌐 Bahasa",
+        "inst_select": "📌 Pilih Instrumen:",
+        "param_select": "📊 Pilih Parameter:",
+        "range_select": "📅 Rentang Waktu:",
+        "preset_options": ["Semua Tahun (Full Data)", "1 Tahun Terakhir", "6 Bulan Terakhir", "1 Bulan Terakhir", "Custom Tanggal"],
+        "show_trend": "📈 Tampilkan Garis Tren",
+        "apply_ma": "🌊 Gunakan Moving Average",
+        "ma_window": "Jendela MA (Jam):",
+        "status_badge": "SYSTEM OPERATIONAL — WITA TIMEZONE",
+        "map_title": "📍 Peta Lokasi Stasiun",
+        "avg_local": "Rata-Rata Lokal",
+        "max_val": "Nilai Maksimum",
+        "min_val": "Nilai Minimum",
+        "global_ref": "Acuan Global",
+        "valid_data": "Data Valid",
+        "tabs": ["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"],
+        "trend_line_name": "Tren Linear",
+        "time_x": "Waktu (WITA)",
+        "trend_title": "Tren Waktu Pengamatan:",
+        "yearly_title": "Variasi Tahunan",
+        "monthly_title": "Pola Musiman Bulanan",
+        "diurnal_title": "Siklus Diurnal (WITA)",
+        "heatmap_title": "Heatmap Konsentrasi",
+        "month_names": {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'},
+        "aq_subheader": "🌍 Status Indeks Terhadap Acuan Global",
+        "aq_analysis": "Analisis Status:",
+        "aq_bariri_val": "Nilai Stasiun Bariri:",
+        "aq_global_val": "Ambang Batas Global:",
+        "aq_conclusion": "Kesimpulan:",
+        "aq_above": "di atas (lebih buruk/tinggi)",
+        "aq_below": "di bawah (lebih rendah)",
+        "aq_conc_text": "Konsentrasi **{param}** saat ini berada **{diff:.2f} {unit}** {status} dari nilai standar latar belakang global.",
+        "no_benchmark": "Parameter ini tidak memiliki acuan baseline global.",
+        "dl_subheader": "📥 Download Data (Terproteksi)",
+        "dl_user": "User ID:",
+        "dl_pass": "Password:",
+        "dl_success": "✅ Autentikasi Berhasil!",
+        "dl_error": "❌ Kredensial salah!",
+        "dl_cols": "Pilih Kolom Data:",
+        "dl_drop_na": "Keluarkan data missing (-9999 / NaN)",
+        "dl_btn": "💾 Unduh CSV (WITA)",
+        "benchmarks": {
+            "CO2_sync": {"name": "CO2 Global (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
+            "CO2_dry_sync": {"name": "CO2 Dry Global", "val": 422.0, "unit": "ppm", "max_gauge": 500},
+            "CH4_sync": {"name": "CH4 Global (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
+            "CH4_dry_sync": {"name": "CH4 Dry Global", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
+            "CO_sync": {"name": "Latar Belakang CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
+            "O3_Concentration_ppb": {"name": "Pedoman WHO (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
+        }
+    }
+}
+
+# ------------------------------------------------------------------------------
+# 3. LOAD DATA DARI GITHUB
 # ------------------------------------------------------------------------------
 URL_PICARRO = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/PICARRO_FULL_TIMESERIES_QC.csv"
 URL_OZON = "https://raw.githubusercontent.com/rheinhart98/dbase_ku_bariri/main/OZON_ACOEM_ALL_YEARS_hourly_clean.csv"
@@ -33,28 +145,23 @@ def load_data(url):
     df['Jam'] = df['Date_Time'].dt.hour
     return df
 
-GLOBAL_BENCHMARKS = {
-    "CO2_sync": {"name": "CO2 Global (WMO)", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-    "CO2_dry_sync": {"name": "CO2 Dry Global", "val": 422.0, "unit": "ppm", "max_gauge": 500},
-    "CH4_sync": {"name": "CH4 Global (WMO)", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-    "CH4_dry_sync": {"name": "CH4 Dry Global", "val": 1.93, "unit": "ppm", "max_gauge": 3.0},
-    "CO_sync": {"name": "Latar Belakang CO", "val": 0.10, "unit": "ppm", "max_gauge": 2.0},
-    "O3_Concentration_ppb": {"name": "Pedoman WHO (O3)", "val": 50.0, "unit": "ppb", "max_gauge": 100.0}
-}
-
 # ------------------------------------------------------------------------------
-# 3. SIDEBAR NAVIGATION
+# 4. SIDEBAR NAVIGATION & LANGUAGE TOGGLE
 # ------------------------------------------------------------------------------
 st.sidebar.image(BMKG_LOGO_URL, width=85)
 st.sidebar.title("GAW Lore Lindu Bariri")
 st.sidebar.caption("Global Atmosphere Watch - BMKG")
 st.sidebar.markdown("---")
 
-st.sidebar.markdown("### 🎨 Tema Tampilan")
-light_mode = st.sidebar.toggle("☀️ Mode Cerah (Light)", value=False)
+# Opsi Pemilih Bahasa (Default English)
+selected_lang = st.sidebar.radio("🌐 Language / Bahasa", ["English", "Bahasa Indonesia"], index=0)
+t = LANG_DATA[selected_lang]
+
+st.sidebar.markdown(f"### {t['theme_title']}")
+light_mode = st.sidebar.toggle(t['light_mode'], value=False)
 st.sidebar.markdown("---")
 
-instrument = st.sidebar.radio("📌 Pilih Instrumen:", ["Picarro (GHG)", "Ozon (ACOEM)"])
+instrument = st.sidebar.radio(t['inst_select'], ["Picarro (GHG)", "Ozon (ACOEM)"])
 if instrument == "Picarro (GHG)":
     df = load_data(URL_PICARRO)
     available_params = ["CO2_sync", "CO2_dry_sync", "CH4_sync", "CH4_dry_sync", "CO_sync", "H2O_sync"]
@@ -62,34 +169,35 @@ else:
     df = load_data(URL_OZON)
     available_params = ["O3_Concentration_ppb", "Chassis_Temp_C", "Lamp_Temp_C", "Ambient_Pressure_torr"]
 
-selected_param = st.sidebar.selectbox("📊 Pilih Parameter:", available_params)
+selected_param = st.sidebar.selectbox(t['param_select'], available_params)
 
 min_date, max_date = df['Date_Time'].min().date(), df['Date_Time'].max().date()
-preset_range = st.sidebar.selectbox("📅 Rentang Waktu:", ["Semua Tahun (Full Data)", "1 Tahun Terakhir", "6 Bulan Terakhir", "1 Bulan Terakhir", "Custom Tanggal"])
+preset_options = t['preset_options']
+preset_range = st.sidebar.selectbox(t['range_select'], preset_options)
 
-if preset_range == "Semua Tahun (Full Data)": start_date, end_date = min_date, max_date
-elif preset_range == "1 Tahun Terakhir": start_date, end_date = max_date - pd.Timedelta(days=365), max_date
-elif preset_range == "6 Bulan Terakhir": start_date, end_date = max_date - pd.Timedelta(days=180), max_date
-elif preset_range == "1 Bulan Terakhir": start_date, end_date = max_date - pd.Timedelta(days=30), max_date
+if preset_range == preset_options[0]: start_date, end_date = min_date, max_date
+elif preset_range == preset_options[1]: start_date, end_date = max_date - pd.Timedelta(days=365), max_date
+elif preset_range == preset_options[2]: start_date, end_date = max_date - pd.Timedelta(days=180), max_date
+elif preset_range == preset_options[3]: start_date, end_date = max_date - pd.Timedelta(days=30), max_date
 else:
     date_selection = st.sidebar.date_input("Custom:", [min_date, max_date], min_value=min_date, max_value=max_date)
     start_date, end_date = date_selection if len(date_selection) == 2 else (min_date, max_date)
 
-show_trend = st.sidebar.checkbox("📈 Tampilkan Garis Tren", value=True)
-apply_ma = st.sidebar.checkbox("🌊 Gunakan Moving Average")
-ma_window = st.sidebar.slider("Jendela MA (Jam):", 3, 72, 24) if apply_ma else 1
+show_trend = st.sidebar.checkbox(t['show_trend'], value=True)
+apply_ma = st.sidebar.checkbox(t['apply_ma'])
+ma_window = st.sidebar.slider(t['ma_window'], 3, 72, 24) if apply_ma else 1
+
+GLOBAL_BENCHMARKS = t['benchmarks']
 
 # ------------------------------------------------------------------------------
-# 4. SKEMA WARNA DUAL TEMA & GRADIENT SIDEBAR + MAIN BACKGROUND
+# 5. SKEMA WARNA DUAL TEMA & GRADIENT SIDEBAR + MAIN BACKGROUND
 # ------------------------------------------------------------------------------
 if light_mode:
-    # Light Holographic Gradient
     bg_gradient = """
         radial-gradient(circle at 12% 15%, rgba(56, 189, 248, 0.22), transparent 40%),
         radial-gradient(circle at 88% 85%, rgba(129, 140, 248, 0.18), transparent 45%),
         linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)
     """
-    # Sidebar Light Gradient (Glow Aura atas & gradasi lembut)
     bg_sidebar = """
         radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15), transparent 60%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%)
@@ -119,13 +227,11 @@ if light_mode:
     input_border = "#CBD5E1"
     input_text = "#0F172A"
 else:
-    # Deep Cyberpunk Space Gradient
     bg_gradient = """
         radial-gradient(circle at 15% 18%, rgba(0, 242, 254, 0.14), transparent 42%),
         radial-gradient(circle at 85% 82%, rgba(112, 0, 255, 0.14), transparent 48%),
         linear-gradient(135deg, #040711 0%, #0B1226 50%, #03050E 100%)
     """
-    # Sidebar Dark Gradient (Cyan Glow Orbs atas & Deep Space linear)
     bg_sidebar = """
         radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.15), transparent 60%),
         linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(3, 7, 18, 0.96) 100%)
@@ -157,26 +263,22 @@ else:
 
 st.markdown(f"""
     <style>
-    /* 1. FUTURISTIC MESH BACKGROUND MAIN APP */
     .stApp, [data-testid="stAppViewContainer"] {{
         background: {bg_gradient} !important;
         background-attachment: fixed !important;
     }}
 
-    /* 2. TRANSPARENT INNER CONTAINERS */
     section.main, .block-container, [data-testid="stVerticalBlock"] {{
         background: transparent !important;
         background-color: transparent !important;
     }}
 
-    /* 3. SIDEBAR MESH GRADIENT */
     [data-testid="stSidebar"] {{
         background: {bg_sidebar} !important;
         border-right: 1px solid {card_border} !important;
         backdrop-filter: blur(16px) !important;
     }}
 
-    /* 4. HEADER & MOBILE TOGGLE FIX */
     header[data-testid="stHeader"] {{
         background: transparent !important;
         z-index: 99999 !important;
@@ -200,7 +302,6 @@ st.markdown(f"""
         color: #38BDF8 !important;
     }}
 
-    /* 5. METRIC CARDS GLASSMORPHISM */
     .stMetric {{
         background: {card_bg} !important;
         border: 1px solid {card_border} !important;
@@ -212,7 +313,6 @@ st.markdown(f"""
     .stMetric label {{ color: {text_sub} !important; font-weight: 700 !important; font-size: 0.78rem !important; }}
     .stMetric div[data-testid="stMetricValue"] {{ color: {text_color} !important; font-weight: 800 !important; }}
 
-    /* 6. SELECTBOX & RADIO INPUTS */
     div[data-baseweb="select"] > div {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
@@ -231,7 +331,6 @@ st.markdown(f"""
         backdrop-filter: blur(10px) !important;
     }}
 
-    /* 7. NAV-DOCK GLASSMORPHISM STYLING */
     div[data-testid="stRadio"] > div[role="radiogroup"] {{
         display: flex !important;
         flex-direction: row !important;
@@ -269,7 +368,6 @@ st.markdown(f"""
         font-weight: 700 !important;
     }}
 
-    /* 8. STATUS BADGE */
     .status-badge {{
         display: inline-flex;
         align-items: center;
@@ -305,7 +403,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 5. JS LOCK TITLE & ADMIN HIDE
+# 6. JS LOCK TITLE & ADMIN HIDE
 # ------------------------------------------------------------------------------
 components.html(
     """<script>
@@ -358,7 +456,7 @@ def apply_chart_theme(fig, chart_title="", is_gauge=False):
     return fig
 
 # ------------------------------------------------------------------------------
-# 6. FILTERING DATA & METRICS
+# 7. FILTERING DATA & METRICS
 # ------------------------------------------------------------------------------
 mask = (df['Date_Time'].dt.date >= start_date) & (df['Date_Time'].dt.date <= end_date)
 df_filtered = df.loc[mask].copy()
@@ -367,11 +465,11 @@ df_filtered[f'{selected_param}_plot'] = df_filtered[selected_param].rolling(wind
 
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
-    st.markdown('<div class="status-badge"><div class="pulse-dot"></div> SYSTEM OPERATIONAL — WITA TIMEZONE</div>', unsafe_allow_html=True)
-    st.title(f"📡 Monitoring {instrument}")
-    st.caption(f"Stasiun Pemantau Atmosfer Global Bariri | Periode: **{start_date}** s/d **{end_date}**")
+    st.markdown(f'<div class="status-badge"><div class="pulse-dot"></div> {t["status_badge"]}</div>', unsafe_allow_html=True)
+    st.title(f"📡 {instrument} Monitoring")
+    st.caption(f"Bariri Global Atmosphere Watch Station | Period: **{start_date}** to **{end_date}**" if selected_lang == "English" else f"Stasiun Pemantau Atmosfer Global Bariri | Periode: **{start_date}** s/d **{end_date}**")
 with col_head2:
-    with st.expander("📍 Peta Lokasi Stasiun"):
+    with st.expander(t['map_title']):
         loc_df = pd.DataFrame({'lat': [-1.65], 'lon': [120.16]})
         st.map(loc_df, zoom=10, use_container_width=True)
 
@@ -379,35 +477,35 @@ valid_series = df_filtered[selected_param].dropna()
 mean_val, max_val, min_val = (valid_series.mean(), valid_series.max(), valid_series.min()) if not valid_series.empty else (0,0,0)
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Rata-Rata Lokal", f"{mean_val:.3f}")
-col2.metric("Nilai Maksimum", f"{max_val:.3f}")
-col3.metric("Nilai Minimum", f"{min_val:.3f}")
+col1.metric(t['avg_local'], f"{mean_val:.3f}")
+col2.metric(t['max_val'], f"{max_val:.3f}")
+col3.metric(t['min_val'], f"{min_val:.3f}")
 
 has_benchmark = selected_param in GLOBAL_BENCHMARKS
 if has_benchmark:
     bench_val = GLOBAL_BENCHMARKS[selected_param]["val"]
     col4.metric(
-        label=f"Acuan Global ({GLOBAL_BENCHMARKS[selected_param]['unit']})",
+        label=f"{t['global_ref']} ({GLOBAL_BENCHMARKS[selected_param]['unit']})",
         value=f"{bench_val}",
         delta=f"{mean_val - bench_val:+.3f} vs Global",
         delta_color="inverse" if (mean_val - bench_val) > 0 else "normal"
     )
 else:
-    col4.metric("Data Valid", f"{(len(valid_series)/len(df_filtered)*100):.1f}%")
+    col4.metric(t['valid_data'], f"{(len(valid_series)/len(df_filtered)*100):.1f}%")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# 7. NAV-DOCK & TAB CONTENT
+# 8. NAV-DOCK & TAB CONTENT
 # ------------------------------------------------------------------------------
 selected_tab = st.radio(
     "Navigation Dock",
-    ["📈 Time Series", "📊 Statistik & Heatmap", "🌍 Status Kualitas Udara", "🔒 Download Data"],
+    t['tabs'],
     horizontal=True,
     label_visibility="collapsed"
 )
 
-if selected_tab == "📈 Time Series":
+if selected_tab == t['tabs'][0]:
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df_filtered["Date_Time"],
@@ -425,36 +523,36 @@ if selected_tab == "📈 Time Series":
             x=df_trend_valid["Date_Time"],
             y=slope * x_secs + intercept,
             mode='lines',
-            name='Tren Linear',
+            name=t['trend_line_name'],
             line=dict(color=line_trend, width=2.2, dash='dash')
         ))
 
     if has_benchmark:
         fig.add_hline(y=bench_val, line_dash="dot", line_color="#F43F5E", annotation_text=f"Global Ref: {bench_val}")
 
-    fig.update_layout(xaxis_title="Waktu (WITA)", yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=520)
-    apply_chart_theme(fig, chart_title=f"Tren Waktu Pengamatan: {selected_param}")
+    fig.update_layout(xaxis_title=t['time_x'], yaxis_title=selected_param, hovermode="x unified", template=plotly_template, height=520)
+    apply_chart_theme(fig, chart_title=f"{t['trend_title']} {selected_param}")
     st.plotly_chart(fig, use_container_width=True)
 
-elif selected_tab == "📊 Statistik & Heatmap":
+elif selected_tab == t['tabs'][1]:
     df_stats = df_filtered.dropna(subset=[selected_param]).copy()
     if not df_stats.empty:
-        month_names = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'Mei', 6:'Jun', 7:'Jul', 8:'Agu', 9:'Sep', 10:'Okt', 11:'Nov', 12:'Des'}
+        month_names = t['month_names']
         df_stats['Nama_Bulan'] = df_stats['Bulan'].map(month_names)
 
         c_top1, c_top2 = st.columns(2)
         with c_top1:
-            fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title="Variasi Tahunan", color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
+            fig_yearly = px.box(df_stats, x="Tahun", y=selected_param, color="Tahun", template=plotly_template, title=t['yearly_title'], color_discrete_sequence=['#38BDF8', '#0284C7', '#0369A1'])
             fig_yearly.update_layout(showlegend=False, height=380)
-            apply_chart_theme(fig_yearly, chart_title="Variasi Tahunan")
+            apply_chart_theme(fig_yearly, chart_title=t['yearly_title'])
             st.plotly_chart(fig_yearly, use_container_width=True)
 
         with c_top2:
             df_monthly_agg = df_stats.groupby(['Bulan', 'Nama_Bulan'])[selected_param].mean().reset_index().sort_values('Bulan')
-            fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title="Pola Musiman Bulanan")
+            fig_monthly = px.line(df_monthly_agg, x="Nama_Bulan", y=selected_param, markers=True, template=plotly_template, title=t['monthly_title'])
             fig_monthly.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8, color='#0284C7'), line_shape='spline')
             fig_monthly.update_layout(height=380)
-            apply_chart_theme(fig_monthly, chart_title="Pola Musiman Bulanan")
+            apply_chart_theme(fig_monthly, chart_title=t['monthly_title'])
             st.plotly_chart(fig_monthly, use_container_width=True)
 
         st.markdown("---")
@@ -462,25 +560,25 @@ elif selected_tab == "📊 Statistik & Heatmap":
         c_bot1, c_bot2 = st.columns(2)
         with c_bot1:
             diurnal_agg = df_stats.groupby('Jam')[selected_param].mean().reset_index()
-            fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title="Siklus Diurnal (WITA)")
+            fig_diurnal = px.line(diurnal_agg, x='Jam', y=selected_param, markers=True, template=plotly_template, title=t['diurnal_title'])
             fig_diurnal.update_traces(line_color='#0284C7', line_width=3, marker=dict(size=8), line_shape='spline')
             fig_diurnal.update_layout(height=380)
             fig_diurnal.update_xaxes(tickmode='array', tickvals=list(range(24)), range=[-0.3, 23.3])
-            apply_chart_theme(fig_diurnal, chart_title="Siklus Diurnal (WITA)")
+            apply_chart_theme(fig_diurnal, chart_title=t['diurnal_title'])
             st.plotly_chart(fig_diurnal, use_container_width=True)
 
         with c_bot2:
             heatmap_data = df_stats.groupby(['Nama_Bulan', 'Bulan', 'Jam'])[selected_param].mean().reset_index().sort_values('Bulan')
-            fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title="Heatmap Konsentrasi", color_continuous_scale="Blues" if light_mode else "ice")
+            fig_heat = px.density_heatmap(heatmap_data, x="Jam", y="Nama_Bulan", z=selected_param, histfunc="avg", template=plotly_template, title=t['heatmap_title'], color_continuous_scale="Blues" if light_mode else "ice")
             fig_heat.update_layout(height=380)
             fig_heat.update_xaxes(tickmode='array', tickvals=list(range(24)))
             fig_heat.update_coloraxes(colorbar_tickfont_color=text_color, colorbar_title_font_color=text_color)
-            apply_chart_theme(fig_heat, chart_title="Heatmap Konsentrasi")
+            apply_chart_theme(fig_heat, chart_title=t['heatmap_title'])
             st.plotly_chart(fig_heat, use_container_width=True)
 
-elif selected_tab == "🌍 Status Kualitas Udara":
+elif selected_tab == t['tabs'][2]:
     if has_benchmark:
-        st.subheader("🌍 Status Indeks Terhadap Acuan Global")
+        st.subheader(t['aq_subheader'])
         bench_info = GLOBAL_BENCHMARKS[selected_param]
 
         c_gauge1, c_gauge2 = st.columns([1, 1])
@@ -522,29 +620,32 @@ elif selected_tab == "🌍 Status Kualitas Udara":
             st.plotly_chart(fig_gauge, use_container_width=True)
 
         with c_gauge2:
-            st.markdown(f"""
-            ### Analisis Status:
-            - **Nilai Stasiun Bariri:** `{mean_val:.2f} {bench_info['unit']}`
-            - **Ambang Batas Global:** `{bench_info['val']} {bench_info['unit']}`
+            status_str = t['aq_above'] if mean_val > bench_info['val'] else t['aq_below']
+            diff_val = abs(mean_val - bench_info['val'])
+            conc_desc = t['aq_conc_text'].format(param=selected_param, diff=diff_val, unit=bench_info['unit'], status=status_str)
 
-            **Kesimpulan:**
-            Konsentrasi **{selected_param}** saat ini berada **{abs(mean_val - bench_info['val']):.2f} {bench_info['unit']}**
-            *{'di atas (lebih buruk/tinggi)' if mean_val > bench_info['val'] else 'di bawah (lebih rendah)'}* dari nilai standar latar belakang global.
+            st.markdown(f"""
+            ### {t['aq_analysis']}
+            - **{t['aq_bariri_val']}** `{mean_val:.2f} {bench_info['unit']}`
+            - **{t['aq_global_val']}** `{bench_info['val']} {bench_info['unit']}`
+
+            **{t['aq_conclusion']}**
+            {conc_desc}
             """)
     else:
-        st.warning("Parameter ini tidak memiliki acuan baseline global.")
+        st.warning(t['no_benchmark'])
 
-elif selected_tab == "🔒 Download Data":
-    st.subheader("📥 Download Data (Terproteksi)")
+elif selected_tab == t['tabs'][3]:
+    st.subheader(t['dl_subheader'])
     col_auth1, col_auth2 = st.columns(2)
-    with col_auth1: user_id = st.text_input("User ID:", key="input_user_id")
-    with col_auth2: user_pass = st.text_input("Password:", type="password", key="input_password")
+    with col_auth1: user_id = st.text_input(t['dl_user'], key="input_user_id")
+    with col_auth2: user_pass = st.text_input(t['dl_pass'], type="password", key="input_password")
 
     if user_id == "gawbariri" and user_pass == "gaw97094":
-        st.success("✅ Autentikasi Berhasil!")
-        selected_cols = st.multiselect("Pilih Kolom Data:", list(df_filtered.columns), default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
-        df_download = df_filtered[selected_cols].dropna(subset=[selected_param]) if st.checkbox("Keluarkan data missing (-9999 / NaN)", value=True) else df_filtered[selected_cols].copy()
+        st.success(t['dl_success'])
+        selected_cols = st.multiselect(t['dl_cols'], list(df_filtered.columns), default=['Tahun', 'Bulan', 'Tanggal', 'Jam', selected_param])
+        df_download = df_filtered[selected_cols].dropna(subset=[selected_param]) if st.checkbox(t['dl_drop_na'], value=True) else df_filtered[selected_cols].copy()
         st.dataframe(df_download.head(50), use_container_width=True)
-        st.download_button("💾 Unduh CSV (WITA)", df_download.to_csv(index=False).encode('utf-8'), f"GAW_Bariri_{selected_param}.csv", "text/csv")
+        st.download_button(t['dl_btn'], df_download.to_csv(index=False).encode('utf-8'), f"GAW_Bariri_{selected_param}.csv", "text/csv")
     elif user_id or user_pass:
-        st.error("❌ Kredensial salah!")
+        st.error(t['dl_error'])
